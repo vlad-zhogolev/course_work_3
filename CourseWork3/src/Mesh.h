@@ -13,6 +13,20 @@
 
 //using namespace std;
 
+enum class TextureType {
+    /*Diffuse,
+    Normal,
+    Metallic,
+    AmbientOcclusion,
+    Roughness*/
+    Diffuse,
+    Specular,
+    Normal,
+    Height
+};
+
+std::string to_string(TextureType type);
+
 struct Vertex {
     // position
     glm::vec3 Position;
@@ -24,7 +38,8 @@ struct Vertex {
 
 struct Texture {
     unsigned int id;
-    std::string type;
+    //std::string type;
+    TextureType type;
     std::string path;
 };
 

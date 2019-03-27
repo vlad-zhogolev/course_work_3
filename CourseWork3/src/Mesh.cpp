@@ -2,6 +2,32 @@
 
 using namespace std;
 
+std::string to_string(TextureType type)
+{
+    string result;
+    switch (type)
+    {
+        /*case TextureType::Diffuse:
+            return "texture_diffuse";
+        case TextureType::Normal:
+            return "texture_normal";
+        case TextureType::Metallic:
+            return "texture_metallic";
+        case TextureType::AmbientOcclusion:
+            return "texture_ambient_occlustion";
+        case TextureType::Roughness:
+            return "texture_roughness";*/
+    case TextureType::Diffuse:
+        return "texture_diffuse";
+    case TextureType::Specular:
+        return "texture_specular";
+    case TextureType::Normal:
+        return "texture_normal";
+    case TextureType::Height:
+        return "texture_height";
+    }
+}
+
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
 {
     this->vertices = vertices;
@@ -24,25 +50,41 @@ void Mesh::Draw(Shader shader)
         glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
                                           // retrieve texture number (the N in diffuse_textureN)
         string number;
-        string name = textures[i].type;
-        if (name == "texture_diffuse")
-            number = std::to_string(diffuseNr++);
-        else if (name == "texture_specular")
-            number = std::to_string(specularNr++); // transfer unsigned int to stream
-        else if (name == "texture_normal")
-            number = std::to_string(normalNr++); // transfer unsigned int to stream
-        else if (name == "texture_height")
-            number = std::to_string(heightNr++); // transfer unsigned int to stream
+        string name = to_string(textures[i].type);
+        switch (textures[i].type)
+        {
+        case TextureType::Diffuse:
+            ++diffuseNr;
+            break;
+        case TextureType::Specular:
+            ++specularNr;
+            break;
+        case TextureType::Normal:
+            ++normalNr;
+            break;
+        case TextureType::Height:
+            ++heightNr;
+            break;
+        }
+        //string name = textures[i].type;
+        //if (name == "texture_diffuse")
+        //    number = std::to_string(diffuseNr++);
+        //else if (name == "texture_specular")
+        //    number = std::to_string(specularNr++); // transfer unsigned int to stream
+        //else if (name == "texture_normal")
+        //    number = std::to_string(normalNr++); // transfer unsigned int to stream
+        //else if (name == "texture_height")
+        //    number = std::to_string(heightNr++); // transfer unsigned int to stream
 
         // now set the sampler to the correct texture unit           
-        shader.setInt(name + number, i);        
+        shader.setInt(name + number, i);
         // and finally bind the texture
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
-    }        
+    }
     //bind material properties
     shader.setVec3("ambient", ambient);
     shader.setVec3("diffuse", diffuse);
-    shader.setVec3("specular", specular);  
+    shader.setVec3("specular", specular);
     shader.setFloat("shininess", BLINN_PHONG * shininess);
 
     // draw mesh
@@ -92,7 +134,7 @@ void Mesh::setupMesh()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
     // vertex texture coords
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));   
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
     glBindVertexArray(0);
 }
