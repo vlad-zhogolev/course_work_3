@@ -14,15 +14,11 @@
 //using namespace std;
 
 enum class TextureType {
-    /*Diffuse,
+    Diffuse,
     Normal,
     Metallic,
     AmbientOcclusion,
-    Roughness*/
-    Diffuse,
-    Specular,
-    Normal,
-    Height
+    Roughness    
 };
 
 std::string to_string(TextureType type);
