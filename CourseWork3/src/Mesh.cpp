@@ -33,11 +33,11 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
 void Mesh::Draw(Shader shader)
 {
     // bind appropriate textures
-    unsigned int diffuseNr = 1;   
-    unsigned int normalNr = 1;
-    unsigned int metallicNr = 1;
-    unsigned int ambientOcclusionNr = 1;
-    unsigned int roughnessNr = 1;
+    unsigned int diffuseNr = 0;   
+    unsigned int normalNr = 0;
+    unsigned int metallicNr = 0;
+    unsigned int ambientOcclusionNr = 0;
+    unsigned int roughnessNr = 0;
 
     for (unsigned int i = 0; i < textures.size(); i++)
     {
@@ -48,19 +48,19 @@ void Mesh::Draw(Shader shader)
         switch (textures[i].type)
         {
         case TextureType::Diffuse:
-            number = diffuseNr++;
+            number = ++diffuseNr;
             break;       
         case TextureType::Normal:
-            number = normalNr++;
+            number = ++normalNr;
             break;
         case TextureType::Metallic:
-            number = metallicNr++;
+            number = ++metallicNr;
             break;
         case TextureType::AmbientOcclusion:
-            number = ambientOcclusionNr++;
+            number = ++ambientOcclusionNr;
             break;
         case TextureType::Roughness:
-            number = roughnessNr++;
+            number = ++roughnessNr;
             break;
         }        
 
