@@ -1,5 +1,4 @@
 #include "SceneLoader.h"
-#include "Aliases.h"
 #include <GLFW/glfw3.h>
 
 using namespace std;
@@ -152,9 +151,10 @@ PointLight SceneLoader::loadPointLight(stringstream& lightData, bool& good)
         checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY") &&
         checkAttenuation(constant, linear, quadratic);
 
-    PointLight pointLight(position, color, 
-                     ambient, diffuse, specular,
-                     constant, linear, quadratic);
+    PointLight pointLight(
+                    position, color, 
+                    ambient, diffuse, specular,
+                    constant, linear, quadratic);
     return pointLight;
 }
 

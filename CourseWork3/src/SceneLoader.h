@@ -6,6 +6,7 @@
 #include "SpotLight.h"
 #include "Model.h"
 #include "Object.h"
+#include "Aliases.h"
 
 #include <iostream>
 #include <vector>

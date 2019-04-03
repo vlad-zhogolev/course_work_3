@@ -21,13 +21,6 @@
 #include <vector>
 #include <algorithm>
 
-// Type aliases
-// using DirectionalLights = vector<DirectionalLight>;
-// using PointLights = vector<PointLight>;
-// using SpotLights = vector<SpotLight>;
-// using Objects = vector<Object>;
-// using Models = vector<std::shared_ptr<Model>>;
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -68,15 +61,13 @@ int main()
     // set russian locale
     setlocale(LC_ALL, "Russian");
 
-    // glfw: initialize and configure
-    // ------------------------------
+    // glfw: initialize and configure    
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // glfw window creation
-    // --------------------
+    // glfw window creation   
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "CourseWork3", NULL, NULL);
     if (window == NULL)
     {
@@ -89,29 +80,29 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    // tell GLFW to capture our mouse
+    // Capture mouse by GLFW 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     
-    // load all OpenGL function pointers   
+    // Load all OpenGL function pointers   
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }   
 
-    // compile shaders       
+    // Compile shaders       
     Shader shader("shaders/pbr.vert", "shaders/pbr.frag");   
     
-    // load scene   
+    // Load scene   
     SceneLoader sceneLoader;
     sceneLoader.loadScene("LightData.txt", "ModelData.txt", dirLights, pointLights, spotLights, models, objects);             
 
-    // setup light manager and key callbacks for lights controls
+    // Setup light manager and key callbacks for lights controls
     LightManager lightManager(pointLights, spotLights);
     glfwSetKeyCallback(window, key_callback);
     glfwSetWindowUserPointer(window, &lightManager);
 
-    // configure global opengl state    
+    // Configure global OpenGL state    
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);   
     
@@ -178,11 +169,10 @@ int main()
             
         shader.setVec3("cameraPos", camera.Position);
         
-        // input
+        // Input
         processInput(window, lightManager);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
+        // GLFW: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

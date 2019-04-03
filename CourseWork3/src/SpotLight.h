@@ -6,29 +6,43 @@
 class SpotLight : public Light
 {
 public:
-    SpotLight(glm::vec3 position, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float constant, float linear, float quadratic, float cutOff, float outerCutOff);   
-    glm::vec3 getPosition() { return position; }    
-    void setPosition(const glm::vec3& pos) { position = pos; }
-    glm::vec3 getDirection() { return direction; }
-    float getConstant() { return constant; }
-    float getLinear() { return linear; }
-    float getQuadratic() { return quadratic; }
-    void setConstant(float constant) { this->constant = (constant > 0) ? constant : 1.0; }
-    void setLinear(float linear) { this->linear = (linear >= 0) ? linear : 1.0; }
-    void setQuadratic(float quadratic) { this->quadratic = (quadratic >= 0) ? quadratic : 1.0; }
+    SpotLight(
+        glm::vec3 position, 
+        glm::vec3 color, 
+        glm::vec3 direction, 
+        glm::vec3 ambient, 
+        glm::vec3 diffuse, 
+        glm::vec3 specular,
+        float constant, 
+        float linear, 
+        float quadratic, 
+        float cutOff, 
+        float outerCutOff);   
     
-    float getCutOff() { return cutOff; }
-    float getOuterCutOff() { return outerCutOff; }
-    void setCutOff(float cutOff);
-    void setOuterCutOff(float cutOff);
+    glm::vec3 getPosition() { return _position; }    
+    glm::vec3 getDirection() { return _direction; }
+    float getConstant() { return _constant; }
+    float getLinear() { return _linear; }
+    float getQuadratic() { return _quadratic; }
+    float getCutOff() { return _cutOff; }
+    float getOuterCutOff() { return _outerCutOff; }
+
+    void setPosition(const glm::vec3& position) { _position = position; }
+    void setDirection(const glm::vec3& direction) {_direction = direction;}
+    void setCutOff(float _cutOff);
+    void setOuterCutOff(float _cutOff);
+    void setConstant(float constant) { _constant = (constant > 0) ? constant : 1.0; }
+    void setLinear(float linear) { _linear = (linear >= 0) ? linear : 1.0; }
+    void setQuadratic(float quadratic) { _quadratic = (quadratic >= 0) ? quadratic : 1.0; }
+    
 private:
-    glm::vec3 direction;
-    glm::vec3 position;
-    float constant;
-    float linear;
-    float quadratic;
-    float cutOff;     //stores angle (need to pass cos(cutOff) to shader)
-    float outerCutOff;// same as cutOff
+    glm::vec3 _direction;
+    glm::vec3 _position;
+    float _constant;
+    float _linear;
+    float _quadratic;
+    float _cutOff;     //stores angle (need to pass cos(cutOff) to shader)
+    float _outerCutOff;// same as cutOff
 };
 
 #endif

@@ -2,43 +2,47 @@
 
 using namespace std;
 
-SpotLight::SpotLight(glm::vec3 position, glm::vec3 color, glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, float constant, float linear, float quadratic, float cutOff, float outerCutOff)
+SpotLight::SpotLight(
+    glm::vec3 position, glm::vec3 color, glm::vec3 direction, 
+    glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, 
+    float constant, float linear, float quadratic, 
+    float cutOff, float outerCutOff):
+    Light(color, ambient, diffuse, specular)
 {
-    this->position = position;
-    this->color = color;
-    this->direction = direction;
-    this->ambient = ambient;
-    this->diffuse = diffuse;
-    this->specular = specular;
+    _position = position;
+    _direction = direction;
+
     if (constant <= 0)
         constant = 1.0;
     if (linear < 0)
         linear = 1.0;
     if (quadratic < 0)
         quadratic = 1.0;
-    this->constant = constant;
-    this->linear = linear;
-    this->quadratic = quadratic;
-    this->cutOff = cutOff;
-    this->outerCutOff = outerCutOff;
+
+    _constant = constant;
+    _linear = linear;
+    _quadratic = quadratic;
+
+    _cutOff = cutOff;
+    _outerCutOff = outerCutOff;
 }
 
 void SpotLight::setCutOff(float cutOff)
 {
     if (cutOff < 0)
-        this->cutOff = 0;
+        _cutOff = 0;
     else if (cutOff > 90)
-        this->cutOff = 90;
+        _cutOff = 90;
     else
-        this->cutOff = cutOff;
+        _cutOff = cutOff;
 }
 
 void SpotLight::setOuterCutOff(float outerCutOff)
 {
     if (outerCutOff < 0)
-        this->outerCutOff = 0;
+        _outerCutOff = 0;
     else if (outerCutOff > 90)
-        this->outerCutOff = 90;
+        _outerCutOff = 90;
     else
-        this->outerCutOff = outerCutOff;
+        _outerCutOff = outerCutOff;
 }
