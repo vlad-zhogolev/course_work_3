@@ -14,7 +14,7 @@
 //using namespace std;
 
 enum class TextureType {
-    Diffuse,
+    Albedo,
     Normal,
     Metallic,
     AmbientOcclusion,

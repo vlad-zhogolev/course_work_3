@@ -16,7 +16,7 @@ void Model::loadModel(string const& path)
 {
     // read file via ASSIMP
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate /*| aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices*/);
     // check for errors
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
     {
@@ -111,19 +111,19 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // normal: texture_normalN
     
     // 1. albedo maps
-    vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Diffuse); // map_Kd in .mtl
+    vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::Albedo); // map_Kd in .mtl
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
     // 2. metallic maps
     vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::Metallic); // map_Ks in .mtl
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
-    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, TextureType::Normal); // map_Kn in .mtl
+    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, TextureType::Normal); // map_Bump in .mtl
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     // 4. ao maps
     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, TextureType::AmbientOcclusion); // map_Ka in .mtl
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
     // 5. roughness maps
-    std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, TextureType::Roughness); // map_Bump in .mtl
+    std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_NORMALS, TextureType::Roughness); // map_Kn in .mtl
     textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
 
     Mesh result(vertices, indices, textures);

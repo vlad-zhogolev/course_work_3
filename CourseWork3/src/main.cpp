@@ -28,10 +28,12 @@ void processInput(GLFWwindow *window, LightManager& lightManager);
 void renderCube();
 void renderPyramid();
 void renderQuad();
+unsigned int loadTexture(char const * path);
+void renderSphere();
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -43,17 +45,21 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+using DirectionalLights = vector<DirectionalLight>;
+using PointLights = vector<PointLight>;
+using SpotLights = vector<SpotLight>;
+using Objects = vector<Object>;
+using Models = vector<Model>;
 
-// directional lights
-vector<DirectionalLight> dirLights;
-// point lights
-vector<PointLight> pointLights;
-// spot lights
-vector<SpotLight> spotLights;
-// objects
-vector<Object> objects;
-// models
-vector<Model> models;
+// Max number of lights   
+const PointLights::size_type MAX_NUMBER_OF_POINT_LIGHTS = 32;
+
+// Scene contents
+DirectionalLights dirLights;
+PointLights pointLights;
+SpotLights spotLights;
+Objects objects;
+Models models; 
 
 int main()
 {        
@@ -69,13 +75,13 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "3D-Scene lighting simulation program", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "CourseWork3", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
-    }
+    }    
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -91,10 +97,8 @@ int main()
         return -1;
     }   
 
-    // compile shaders    
-    Shader shaderGeometryPass("shaders/g_buffer.vert", "shaders/g_buffer.frag");
-    Shader shaderLightingPass("shaders/deferred_shading.vert", "shaders/deferred_shading.frag");
-    Shader shaderLightBox("shaders/deferred_light_box.vert", "shaders/deferred_light_box.frag");
+    // compile shaders       
+    Shader shader("shaders/pbr.vert", "shaders/pbr.frag");   
     
     // load scene   
     SceneLoader sceneLoader;
@@ -107,139 +111,32 @@ int main()
 
     // configure global opengl state    
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-
-    // configure g-buffer framebuffer    
-    unsigned int gBuffer;
-    glGenFramebuffers(1, &gBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    unsigned int gPosition;
-    unsigned int gNormal;
-    unsigned int gAlbedoSpec;
-    unsigned int gMaterialAmbient;
-    unsigned int gMaterialDiffuse;
-    unsigned int gMaterialSpecular;
-    // position color buffer
-    glGenTextures(1, &gPosition);
-    glBindTexture(GL_TEXTURE_2D, gPosition);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
-    // normal color buffer
-    glGenTextures(1, &gNormal);
-    glBindTexture(GL_TEXTURE_2D, gNormal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
-    // color + specular color buffer
-    glGenTextures(1, &gAlbedoSpec);
-    glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
-    // material buffers (ambient, diffuse and specular properties)
-    glGenTextures(1, &gMaterialAmbient);
-    glBindTexture(GL_TEXTURE_2D, gMaterialAmbient);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gMaterialAmbient, 0);
-    glGenTextures(1, &gMaterialDiffuse);
-    glBindTexture(GL_TEXTURE_2D, gMaterialDiffuse);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gMaterialDiffuse, 0);
-    glGenTextures(1, &gMaterialSpecular);
-    glBindTexture(GL_TEXTURE_2D, gMaterialSpecular);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, gMaterialSpecular, 0);
-
-    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-    unsigned int attachments[6] =
-    { 
-        GL_COLOR_ATTACHMENT0,
-        GL_COLOR_ATTACHMENT1,
-        GL_COLOR_ATTACHMENT2,
-        GL_COLOR_ATTACHMENT3,
-        GL_COLOR_ATTACHMENT4,
-        GL_COLOR_ATTACHMENT5
-    };
-    glDrawBuffers(6, attachments);
-
-    // create and attach depth buffer (renderbuffer)
-    unsigned int rboDepth;
-    glGenRenderbuffers(1, &rboDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-    // finally check if framebuffer is complete
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete!" << std::endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // lighting info   
-    const unsigned int NR_LIGHTS = 32;
+    glEnable(GL_CULL_FACE);   
     
-    int pointLightsNumber = min(32, (int)pointLights.size());
-    int spotLightsNumber = min(32, (int)spotLights.size());
-    int dirLightsNumber = min(4, (int)dirLights.size());
+    PointLights::size_type pointLightsNumber = min(MAX_NUMBER_OF_POINT_LIGHTS, pointLights.size());   
 
     // shader configuration    
-    shaderLightingPass.use();
-    shaderLightingPass.setInt("gPosition", 0);
-    shaderLightingPass.setInt("gNormal", 1);
-    shaderLightingPass.setInt("gAlbedoSpec", 2);
-    shaderLightingPass.setInt("gMaterialAmbient", 3);
-    shaderLightingPass.setInt("gMaterialDiffuse", 4);
-    shaderLightingPass.setInt("gMaterialSpecular", 5);
-    shaderLightingPass.setInt("pointLightsNumber", pointLightsNumber);
-    shaderLightingPass.setInt("spotLightsNumber", spotLightsNumber);
-    shaderLightingPass.setInt("dirLightsNumber", dirLightsNumber);
-    
-    // set up directional lights
-    for (unsigned int i = 0; i < dirLights.size(); ++i)
-    {
-        shaderLightingPass.setVec3("dirLights[" + to_string(i) + "].direction", dirLights[i].getDirection());
-        shaderLightingPass.setVec3("dirLights[" + to_string(i) + "].color", dirLights[i].getColor());
-        shaderLightingPass.setVec3("dirLights[" + to_string(i) + "].ambient", dirLights[i].getAmbient());
-        shaderLightingPass.setVec3("dirLights[" + to_string(i) + "].diffuse", dirLights[i].getDiffuse());
-        shaderLightingPass.setVec3("dirLights[" + to_string(i) + "].specular", dirLights[i].getSpecular());
-    }
+    // Set conformity between variable name in shader and OpenGL texture.
+    // Number corresponds to OpenGL texture number.
+    // e.g. 0 - GL_TEXTURE0
+    //      1 - GL_TEXTURE1
+    //      and so on...
+    shader.use();
+    shader.setInt("pointLightsNumber", pointLightsNumber);        
 
     // set up point lights
     for (unsigned int i = 0; i < pointLights.size(); ++i)
     {
-        shaderLightingPass.setVec3("pointLights[" + to_string(i) + "].ambient", pointLights[i].getAmbient());
-        shaderLightingPass.setVec3("pointLights[" + to_string(i) + "].diffuse", pointLights[i].getDiffuse());
-        shaderLightingPass.setVec3("pointLights[" + to_string(i) + "].specular", pointLights[i].getSpecular());
-        shaderLightingPass.setVec3("pointLights[" + to_string(i) + "].position", pointLights[i].getPosition());
-        shaderLightingPass.setVec3("pointLights[" + to_string(i) + "].color", pointLights[i].getColor());        
-        shaderLightingPass.setFloat("pointLights[" + to_string(i) + "].constant", pointLights[i].getConstant());
-        shaderLightingPass.setFloat("pointLights[" + to_string(i) + "].linear", pointLights[i].getLinear());
-        shaderLightingPass.setFloat("pointLights[" + to_string(i) + "].quadratic", pointLights[i].getQuadratic());
-    }
-
-    //set up spot lights
-    for (unsigned int i = 0; i < spotLights.size(); ++i)
-    {
-        shaderLightingPass.setVec3("spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());
-        shaderLightingPass.setVec3("spotLights[" + to_string(i) + "].color", spotLights[i].getColor());
-        shaderLightingPass.setVec3("spotLights[" + to_string(i) + "].direction", spotLights[i].getDirection());
-        shaderLightingPass.setVec3("spotLights[" + to_string(i) + "].ambient", spotLights[i].getAmbient());
-        shaderLightingPass.setVec3("spotLights[" + to_string(i) + "].diffuse", spotLights[i].getDiffuse());
-        shaderLightingPass.setVec3("spotLights[" + to_string(i) + "].specular", spotLights[i].getSpecular());
-        shaderLightingPass.setFloat("spotLights[" + to_string(i) + "].constant", spotLights[i].getConstant());
-        shaderLightingPass.setFloat("spotLights[" + to_string(i) + "].linear", spotLights[i].getLinear());
-        shaderLightingPass.setFloat("spotLights[" + to_string(i) + "].quadratic", spotLights[i].getQuadratic());
-        shaderLightingPass.setFloat("spotLights[" + to_string(i) + "].cutOff", glm::cos(glm::radians(spotLights[i].getCutOff())));
-        shaderLightingPass.setFloat("spotLights[" + to_string(i) + "].outerCutOff", glm::cos(glm::radians(spotLights[i].getOuterCutOff())));
-    }       
+        pointLights[i].setColor(pointLights[i].getColor() * glm::vec3(100));
+        shader.setVec3("pointLights[" + to_string(i) + "].ambient", pointLights[i].getAmbient());
+        shader.setVec3("pointLights[" + to_string(i) + "].diffuse", pointLights[i].getDiffuse());
+        shader.setVec3("pointLights[" + to_string(i) + "].specular", pointLights[i].getSpecular());
+        shader.setVec3("pointLights[" + to_string(i) + "].position", pointLights[i].getPosition());
+        shader.setVec3("pointLights[" + to_string(i) + "].color", pointLights[i].getColor());        
+        shader.setFloat("pointLights[" + to_string(i) + "].constant", pointLights[i].getConstant());
+        shader.setFloat("pointLights[" + to_string(i) + "].linear", pointLights[i].getLinear());
+        shader.setFloat("pointLights[" + to_string(i) + "].quadratic", pointLights[i].getQuadratic());
+    }    
    
     // render loop    
     while (!glfwWindowShouldClose(window))
@@ -256,90 +153,35 @@ int main()
         // render        
         glClearColor(0.1f, 0.1f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // 1. geometry pass: render scene's geometry/color data into gbuffer        
-        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+        
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        /*glm::mat4 model;*/
-        shaderGeometryPass.use();
-        shaderGeometryPass.setMat4("projection", projection);
-        shaderGeometryPass.setMat4("view", view);
+        /*glm::mat4 model;*/       
+        
+        shader.use();
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+        // Render objects
         for (unsigned int i = 0; i < objects.size(); i++)
         {
-            glm::mat4 model = objects[i].getModelMatrix();
-            glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
-            shaderGeometryPass.setMat3("normalMatrix", normalMatrix);
-            shaderGeometryPass.setMat4("model", model);
-            objects[i].getModel().Draw(shaderGeometryPass);
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glm::mat4 model = objects[i].getModelMatrix();           
+            shader.setMat4("model", model);          
+              
+            objects[i].getModel().Draw(shader);
+        }                
 
-        // 2. lighting pass: calculate lighting by iterating over a screen filled quad pixel-by-pixel using the gbuffer's content.        
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shaderLightingPass.use();
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, gPosition);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, gNormal);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, gAlbedoSpec);
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, gMaterialAmbient);
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, gMaterialDiffuse);
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, gMaterialSpecular);
-        
         // update point lights
         for (unsigned int i = 0; i < pointLights.size(); ++i)                              
-            shaderLightingPass.setVec3("pointLights[" + to_string(i) + "].position", pointLights[i].getPosition());                            
+            shader.setVec3("pointLights[" + to_string(i) + "].position", pointLights[i].getPosition());                            
 
         // update spot lights
         for (unsigned int i = 0; i < spotLights.size(); ++i)        
-            shaderLightingPass.setVec3("spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());
+            shader.setVec3("spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());
             
-        shaderLightingPass.setVec3("viewPos", camera.Position);
-        // finally render quad
-        renderQuad();
-
-        // 2.5. copy content of geometry's depth buffer to default framebuffer's depth buffer        
-        // write to default framebuffer
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                                                   
-        // blit to default framebuffer.                                           
-        glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // 3. render lights on top of scene        
-        shaderLightBox.use();            
-        shaderLightBox.setMat4("projection", projection);
-        shaderLightBox.setMat4("view", view);
-        for (unsigned int i = 0; i < pointLights.size(); ++i)
-        {
-            glm::mat4 model = glm::mat4();
-            model = glm::translate(model, pointLights[i].getPosition());
-            model = glm::scale(model, glm::vec3(0.125f));
-            shaderLightBox.setMat4("model", model);
-            shaderLightBox.setVec3("lightColor", pointLights[i].getColor());
-            renderCube();
-        }
-
-        for (unsigned int i = 0; i < spotLights.size(); ++i)
-        {
-            glm::mat4 model = glm::mat4();
-            model = glm::translate(model, spotLights[i].getPosition());
-            glm::quat rotation;
-            rotation = glm::rotation(glm::vec3(0.0f, -1.0f, 0.0f), glm::normalize(spotLights[i].getDirection()));
-            model *= glm::toMat4(rotation);
-            model = glm::scale(model, glm::vec3(0.25f));
-            shaderLightBox.setMat4("model", model);
-            shaderLightBox.setVec3("lightColor", spotLights[i].getColor());
-            renderPyramid();           
-        }
-
+        shader.setVec3("cameraPos", camera.Position);
+        
         // input
         processInput(window, lightManager);
 
@@ -568,4 +410,149 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     LightManager* lightManager = static_cast<LightManager*>(obj);
     if (lightManager)            
         lightManager->key_callback(window, key, scancode, action, mods);    
+}
+
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+unsigned int loadTexture(char const * path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
+
+unsigned int sphereVAO = 0;
+unsigned int indexCount;
+void renderSphere()
+{
+    if (sphereVAO == 0)
+    {
+        ofstream vertFout("vert.data");
+        ofstream textureFout("texture.data");
+        ofstream normFout("norm.data");
+        ofstream indicesFout("indices.data");
+
+        glGenVertexArrays(1, &sphereVAO);
+
+        unsigned int vbo, ebo;
+        glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
+
+        std::vector<glm::vec3> positions;
+        std::vector<glm::vec2> uv;
+        std::vector<glm::vec3> normals;
+        std::vector<unsigned int> indices;
+
+        const unsigned int X_SEGMENTS = 64;
+        const unsigned int Y_SEGMENTS = 64;
+        const float PI = 3.14159265359;
+        for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
+        {
+            for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+            {
+                float xSegment = (float)x / (float)X_SEGMENTS;
+                float ySegment = (float)y / (float)Y_SEGMENTS;
+                float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+                float yPos = std::cos(ySegment * PI);
+                float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+
+                vertFout << xPos << " " << yPos << " " << zPos << "\n";
+                textureFout << xSegment << " " << ySegment << "\n";
+                normFout << xPos << " " << yPos << " " << zPos << "\n";
+
+                positions.push_back(glm::vec3(xPos, yPos, zPos));
+                uv.push_back(glm::vec2(xSegment, ySegment));
+                normals.push_back(glm::vec3(xPos, yPos, zPos));
+            }
+        }
+
+        bool oddRow = false;
+        for (int y = 0; y < Y_SEGMENTS; ++y)
+        {
+            if (!oddRow) // even rows: y == 0, y == 2; and so on
+            {
+                for (int x = 0; x <= X_SEGMENTS; ++x)
+                {
+                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
+                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+                    indicesFout << indices[indices.size() - 2] << " " << indices[indices.size() - 1] << "\n";
+                }
+            }
+            else
+            {
+                for (int x = X_SEGMENTS; x >= 0; --x)
+                {
+                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
+                    indicesFout << indices[indices.size() - 2] << " " << indices[indices.size() - 1] << "\n";
+                }
+            }
+            oddRow = !oddRow;
+        }
+        indexCount = indices.size();
+
+        std::vector<float> data;
+        for (int i = 0; i < positions.size(); ++i)
+        {
+            data.push_back(positions[i].x);
+            data.push_back(positions[i].y);
+            data.push_back(positions[i].z);
+            if (uv.size() > 0)
+            {
+                data.push_back(uv[i].x);
+                data.push_back(uv[i].y);
+            }
+            if (normals.size() > 0)
+            {
+                data.push_back(normals[i].x);
+                data.push_back(normals[i].y);
+                data.push_back(normals[i].z);
+            }
+        }
+        glBindVertexArray(sphereVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+        float stride = (3 + 2 + 3) * sizeof(float);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
+    }
+
+    glBindVertexArray(sphereVAO);
+    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
 }
