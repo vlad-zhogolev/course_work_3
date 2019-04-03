@@ -44,14 +44,14 @@ const int BLINN_PHONG = 4;
 class Mesh {
 public:
     /*  Mesh Data  */
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
+    std::vector<Vertex> _vertices;
+    std::vector<unsigned int> _indices;
+    std::vector<Texture> _textures;
     //unsigned int VAO;
 
     /*  Functions  */
     // constructor
-    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+    Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Texture>& textures);
 
     // render the mesh
     void Draw(Shader shader);

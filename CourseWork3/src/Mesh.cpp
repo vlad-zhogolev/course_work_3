@@ -20,19 +20,18 @@ std::string to_string(TextureType type)
     }
 }
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+Mesh::Mesh(const vector<Vertex>& vertices, const vector<unsigned int>& indices, const vector<Texture>& textures):
+    _vertices(vertices),
+    _indices(indices),
+    _textures(textures)
 {
-    this->vertices = vertices;
-    this->indices = indices;
-    this->textures = textures;
-
-    // now that we have all the required data, set the vertex buffers and its attribute pointers.
+    // Set the vertex buffers and it's attribute pointers.
     setupMesh();
 }
 
 void Mesh::Draw(Shader shader)
 {
-    // bind appropriate textures
+    // Bind appropriate textures
 
     unsigned int diffuseNr = 0;   
     unsigned int normalNr = 0;
@@ -40,19 +39,19 @@ void Mesh::Draw(Shader shader)
     unsigned int ambientOcclusionNr = 0;
     unsigned int roughnessNr = 0;
 
-    // shader configuration    
+    // Shader configuration    
     // Set conformity between variable name in shader and OpenGL texture.
     // Number corresponds to OpenGL texture number.
     // e.g. 0 - GL_TEXTURE0
     //      1 - GL_TEXTURE1
     //      and so on...
-     for (unsigned int i = 0; i < textures.size(); i++)
+     for (unsigned int i = 0; i < _textures.size(); i++)
      {
          glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
                                            // retrieve texture number (the N in diffuse_textureN)
          unsigned int number;       
         
-         switch (textures[i].type)
+         switch (_textures[i].type)
          {
          case TextureType::Albedo:
              number = ++diffuseNr;
@@ -71,10 +70,10 @@ void Mesh::Draw(Shader shader)
              break;
          }        
 
-         // now set the sampler to the correct texture unit           
-         shader.setInt(to_string(textures[i].type) + to_string(number), i);
-         // and finally bind the texture
-         glBindTexture(GL_TEXTURE_2D, textures[i].id);
+         // Set the sampler to the correct texture unit           
+         shader.setInt(to_string(_textures[i].type) + to_string(number), i);
+         // Bind the texture
+         glBindTexture(GL_TEXTURE_2D, _textures[i].id);
      }
     
     //bind material properties
@@ -86,11 +85,11 @@ void Mesh::Draw(Shader shader)
 
     // draw mesh
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     // set textures to default
-    for (unsigned int i = 0; i < textures.size(); ++i)
+    for (unsigned int i = 0; i < _textures.size(); ++i)
     {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -117,13 +116,13 @@ void Mesh::setupMesh()
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(Vertex), &_vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(unsigned int), &_indices[0], GL_STATIC_DRAW);
 
     // set the vertex attribute pointers
-    // vertex Positions
+    // vertex positions
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     // vertex normals

@@ -30,7 +30,7 @@ public:
     glm::mat4 getModelMatrix();
 
 private:
-    //TODO: change Model& to unique_ptr<Model>
+    //TODO: change Model& to shared_ptr<Model>
     Model& _model;   
     glm::vec3 _position;
     glm::vec3 _rotation;
