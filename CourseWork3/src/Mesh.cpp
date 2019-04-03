@@ -33,6 +33,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
 void Mesh::Draw(Shader shader)
 {
     // bind appropriate textures
+
     unsigned int diffuseNr = 0;   
     unsigned int normalNr = 0;
     unsigned int metallicNr = 0;
