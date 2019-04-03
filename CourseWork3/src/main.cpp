@@ -20,6 +20,13 @@
 #include <vector>
 #include <algorithm>
 
+// Type aliases
+using DirectionalLights = vector<DirectionalLight>;
+using PointLights = vector<PointLight>;
+using SpotLights = vector<SpotLight>;
+using Objects = vector<Object>;
+using Models = vector<Model>;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -28,31 +35,25 @@ void processInput(GLFWwindow *window, LightManager& lightManager);
 void renderCube();
 void renderPyramid();
 void renderQuad();
-unsigned int loadTexture(char const * path);
-void renderSphere();
 
-// settings
+// Screen settings
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
-// camera
+// Camera settings
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// timing
+// Timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-using DirectionalLights = vector<DirectionalLight>;
-using PointLights = vector<PointLight>;
-using SpotLights = vector<SpotLight>;
-using Objects = vector<Object>;
-using Models = vector<Model>;
-
-// Max number of lights   
-const PointLights::size_type MAX_NUMBER_OF_POINT_LIGHTS = 32;
+// Max number of lights (their values must match with values in shader)
+const PointLights::size_type        MAX_NUMBER_OF_POINT_LIGHTS          = 32;
+const SpotLights::size_type         MAX_NUMBER_OF_SPOT_LIGHTS           = 32;
+const DirectionalLights::size_type  MAX_NUMBER_OF_DIRECTIONAL_LIGHTS    = 4;
 
 // Scene contents
 DirectionalLights dirLights;
@@ -115,17 +116,12 @@ int main()
     
     PointLights::size_type pointLightsNumber = min(MAX_NUMBER_OF_POINT_LIGHTS, pointLights.size());   
 
-    // shader configuration    
-    // Set conformity between variable name in shader and OpenGL texture.
-    // Number corresponds to OpenGL texture number.
-    // e.g. 0 - GL_TEXTURE0
-    //      1 - GL_TEXTURE1
-    //      and so on...
+    // Set shader in use
     shader.use();
     shader.setInt("pointLightsNumber", pointLightsNumber);        
 
-    // set up point lights
-    for (unsigned int i = 0; i < pointLights.size(); ++i)
+    // Setup point lights
+    for (PointLights::size_type i = 0; i < pointLights.size(); ++i)
     {
         pointLights[i].setColor(pointLights[i].getColor() * glm::vec3(100));
         shader.setVec3("pointLights[" + to_string(i) + "].ambient", pointLights[i].getAmbient());
@@ -138,27 +134,26 @@ int main()
         shader.setFloat("pointLights[" + to_string(i) + "].quadratic", pointLights[i].getQuadratic());
     }    
    
-    // render loop    
+    // TODO: bring here code for setting up spot and directional lights
+
+    // Render loop    
     while (!glfwWindowShouldClose(window))
     {
-        // per-frame time logic        
+        // Per-frame time logic        
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         lightManager.updateDeltaTime(deltaTime);
 
-        //// input
-        //processInput(window, lightManager);
-
-        // render        
+        // Render        
         glClearColor(0.1f, 0.1f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-        
+        // Calculate view and projection matrix for current state and position of camera
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        /*glm::mat4 model;*/       
+        glm::mat4 view = camera.GetViewMatrix();      
         
+        // Set shader in use and bind view and projection matrices
         shader.use();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
@@ -168,16 +163,16 @@ int main()
         {
             glm::mat4 model = objects[i].getModelMatrix();           
             shader.setMat4("model", model);          
-              
+            
             objects[i].getModel().Draw(shader);
         }                
 
-        // update point lights
-        for (unsigned int i = 0; i < pointLights.size(); ++i)                              
+        // Update point lights positions
+        for (PointLights::size_type i = 0; i < pointLights.size(); ++i)                              
             shader.setVec3("pointLights[" + to_string(i) + "].position", pointLights[i].getPosition());                            
 
-        // update spot lights
-        for (unsigned int i = 0; i < spotLights.size(); ++i)        
+        // Update spot lights positions
+        for (SpotLights::size_type i = 0; i < spotLights.size(); ++i)        
             shader.setVec3("spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());
             
         shader.setVec3("cameraPos", camera.Position);
@@ -410,149 +405,4 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     LightManager* lightManager = static_cast<LightManager*>(obj);
     if (lightManager)            
         lightManager->key_callback(window, key, scancode, action, mods);    
-}
-
-// utility function for loading a 2D texture from file
-// ---------------------------------------------------
-unsigned int loadTexture(char const * path)
-{
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-
-    int width, height, nrComponents;
-    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
-    }
-
-    return textureID;
-}
-
-unsigned int sphereVAO = 0;
-unsigned int indexCount;
-void renderSphere()
-{
-    if (sphereVAO == 0)
-    {
-        ofstream vertFout("vert.data");
-        ofstream textureFout("texture.data");
-        ofstream normFout("norm.data");
-        ofstream indicesFout("indices.data");
-
-        glGenVertexArrays(1, &sphereVAO);
-
-        unsigned int vbo, ebo;
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
-
-        std::vector<glm::vec3> positions;
-        std::vector<glm::vec2> uv;
-        std::vector<glm::vec3> normals;
-        std::vector<unsigned int> indices;
-
-        const unsigned int X_SEGMENTS = 64;
-        const unsigned int Y_SEGMENTS = 64;
-        const float PI = 3.14159265359;
-        for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
-        {
-            for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
-            {
-                float xSegment = (float)x / (float)X_SEGMENTS;
-                float ySegment = (float)y / (float)Y_SEGMENTS;
-                float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-                float yPos = std::cos(ySegment * PI);
-                float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-
-                vertFout << xPos << " " << yPos << " " << zPos << "\n";
-                textureFout << xSegment << " " << ySegment << "\n";
-                normFout << xPos << " " << yPos << " " << zPos << "\n";
-
-                positions.push_back(glm::vec3(xPos, yPos, zPos));
-                uv.push_back(glm::vec2(xSegment, ySegment));
-                normals.push_back(glm::vec3(xPos, yPos, zPos));
-            }
-        }
-
-        bool oddRow = false;
-        for (int y = 0; y < Y_SEGMENTS; ++y)
-        {
-            if (!oddRow) // even rows: y == 0, y == 2; and so on
-            {
-                for (int x = 0; x <= X_SEGMENTS; ++x)
-                {
-                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
-                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-                    indicesFout << indices[indices.size() - 2] << " " << indices[indices.size() - 1] << "\n";
-                }
-            }
-            else
-            {
-                for (int x = X_SEGMENTS; x >= 0; --x)
-                {
-                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
-                    indicesFout << indices[indices.size() - 2] << " " << indices[indices.size() - 1] << "\n";
-                }
-            }
-            oddRow = !oddRow;
-        }
-        indexCount = indices.size();
-
-        std::vector<float> data;
-        for (int i = 0; i < positions.size(); ++i)
-        {
-            data.push_back(positions[i].x);
-            data.push_back(positions[i].y);
-            data.push_back(positions[i].z);
-            if (uv.size() > 0)
-            {
-                data.push_back(uv[i].x);
-                data.push_back(uv[i].y);
-            }
-            if (normals.size() > 0)
-            {
-                data.push_back(normals[i].x);
-                data.push_back(normals[i].y);
-                data.push_back(normals[i].z);
-            }
-        }
-        glBindVertexArray(sphereVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-        float stride = (3 + 2 + 3) * sizeof(float);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
-    }
-
-    glBindVertexArray(sphereVAO);
-    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
 }
