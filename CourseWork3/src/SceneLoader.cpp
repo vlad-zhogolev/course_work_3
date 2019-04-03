@@ -1,13 +1,20 @@
 #include "SceneLoader.h"
+#include "Aliases.h"
 #include <GLFW/glfw3.h>
+
 using namespace std;
 
-SceneLoader::SceneLoader(){}
-
-void SceneLoader::loadScene(string lightsDataPath, string objectsDataPath, vector<DirectionalLight>& dirLights, vector<PointLight>& pointLights, vector<SpotLight>& spotLights, vector<Model>& models, vector<Object>& objects)
+void SceneLoader::loadScene(
+    string lightsDataPath,
+    string objectsDataPath,
+    DirectionalLights& dirLights, 
+    PointLights& pointLights, 
+    SpotLights& spotLights, 
+    Models& models, 
+    Objects& objects)
 {    
     ifstream file;    
-    //read point lights info
+    // Read point lights info
     try
     {
         file.open(lightsDataPath);
@@ -79,7 +86,7 @@ void SceneLoader::loadScene(string lightsDataPath, string objectsDataPath, vecto
             if (index < 0)
             {
                 Model model(path);
-                models.push_back(model);
+                models.push_back(make_shared<Model>(model));
                 modelIndexes.push_back(models.size() - 1);
             }
             else            
@@ -188,13 +195,13 @@ SpotLight SceneLoader::loadSpotLight(std::stringstream & lightData, bool& good)
     return spotLight;
 }
 
-int SceneLoader::getModelIndex(string path, vector<Model>& models)
+int SceneLoader::getModelIndex(string path, const std::vector<std::shared_ptr<Model>>& models)
 {
     int i = 0;
     bool modelExists = false;
     while (!modelExists && i < models.size())
     {
-        modelExists = (path.substr(0, path.find_last_of('/')) == models[i].directory);
+        modelExists = (path.substr(0, path.find_last_of('/')) == models[i]->directory);
         ++i;
     }
     if (modelExists)
@@ -262,4 +269,3 @@ bool SceneLoader::checkScale(glm::vec3 scale)
     cout << "ERROR::SCENE_LOADER::WRONG_SCALE" << endl;
     return false;
 }
-

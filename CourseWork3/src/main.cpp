@@ -14,6 +14,7 @@
 #include "LightManager.h"
 #include "Model.h"
 #include "Object.h"
+#include "Aliases.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <iostream>
@@ -21,11 +22,11 @@
 #include <algorithm>
 
 // Type aliases
-using DirectionalLights = vector<DirectionalLight>;
-using PointLights = vector<PointLight>;
-using SpotLights = vector<SpotLight>;
-using Objects = vector<Object>;
-using Models = vector<Model>;
+// using DirectionalLights = vector<DirectionalLight>;
+// using PointLights = vector<PointLight>;
+// using SpotLights = vector<SpotLight>;
+// using Objects = vector<Object>;
+// using Models = vector<std::shared_ptr<Model>>;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -164,7 +165,7 @@ int main()
             glm::mat4 model = objects[i].getModelMatrix();           
             shader.setMat4("model", model);          
             
-            objects[i].getModel().Draw(shader);
+            objects[i].getModel()->Draw(shader);
         }                
 
         // Update point lights positions

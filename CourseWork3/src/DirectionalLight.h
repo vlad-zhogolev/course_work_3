@@ -1,5 +1,5 @@
 #ifndef DIRECTIONAL_LIGHT_H
-#define DIRECTINOAL_LIGHT_H
+#define DIRECTIONAL_LIGHT_H
 
 #include "Light.h"
 

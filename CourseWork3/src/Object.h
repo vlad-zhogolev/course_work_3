@@ -9,14 +9,15 @@ class Object
 {
 public:    
 
-    Object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Model& model):
+    Object(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, const std::shared_ptr<Model>& model):
         _model(model), 
         _position(position),
+        _rotation(rotation),
         _scale(scale) {}
 
-    Model& getModel() { return _model; }
+    std::shared_ptr<Model> getModel() { return _model ? _model : nullptr; }
 
-    void setModel(const Model& model) { _model = model; };
+    void setModel(const std::shared_ptr<Model>& model) { _model = model; };
 
     glm::vec3 getPosition() { return _position; }
 
@@ -30,8 +31,7 @@ public:
     glm::mat4 getModelMatrix();
 
 private:
-    //TODO: change Model& to shared_ptr<Model>
-    Model& _model;   
+    std::shared_ptr<Model> _model;
     glm::vec3 _position;
     glm::vec3 _rotation;
     glm::vec3 _scale;

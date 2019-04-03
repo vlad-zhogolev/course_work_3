@@ -10,6 +10,7 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <memory>
 
 //using namespace std;
 
@@ -34,7 +35,6 @@ struct Vertex {
 
 struct Texture {
     unsigned int id;
-    //std::string type;
     TextureType type;
     std::string path;
 };
@@ -42,18 +42,10 @@ struct Texture {
 const int BLINN_PHONG = 4;
 
 class Mesh {
-public:
-    /*  Mesh Data  */
-    std::vector<Vertex> _vertices;
-    std::vector<unsigned int> _indices;
-    std::vector<Texture> _textures;
-    //unsigned int VAO;
-
-    /*  Functions  */
-    // constructor
+public:       
     Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices, const std::vector<Texture>& textures);
 
-    // render the mesh
+    // Render the mesh
     void Draw(Shader shader);
     void setAmbient(glm::vec3 ambient) { this->ambient = ambient; }
     void setDiffuse(glm::vec3 diffuse) { this->diffuse = diffuse; }
@@ -65,17 +57,25 @@ public:
     float getShininess() { return shininess; }
 
 private:
-    /*  Render data  */
-    unsigned int VAO, VBO, EBO;
+    // Initializes all the buffer objects/arrays
+    void setupMesh();
 
+private:
+    // Render data
+    unsigned int VAO;
+    unsigned int VBO;
+    unsigned int EBO;
+
+    // Mesh data
+    std::vector<Vertex> _vertices;
+    std::vector<unsigned int> _indices;
+    std::vector<Texture> _textures; 
+
+    // Material properties
     glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
     float shininess;
-
-    /*  Functions    */
-    // initializes all the buffer objects/arrays
-    void setupMesh();
 };
 #endif
 
