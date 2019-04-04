@@ -12,14 +12,13 @@ out vec3 Normal;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat3 normalMatrix;
 
 void main()
 {
     TexCoords = aTexCoords; 
-    WorldPos = vec3(model * vec4(aPos, 1.0)); 
-    //Normal = mat3(model) * aNormal;   
-    // For model scaling (better to calculate mat3(transpose(inverse(model))) in C++ code)
-    Normal = mat3(transpose(inverse(model))) * aNormal; 
+    WorldPos = vec3(model * vec4(aPos, 1.0));          
+    Normal = normalMatrix * aNormal;
 
     gl_Position =  projection * view * vec4(WorldPos, 1.0);
 }

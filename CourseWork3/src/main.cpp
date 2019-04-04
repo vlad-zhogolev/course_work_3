@@ -153,9 +153,13 @@ int main()
         // Render objects
         for (unsigned int i = 0; i < objects.size(); i++)
         {
-            glm::mat4 model = objects[i].getModelMatrix();           
-            shader.setMat4("model", model);          
-            
+            glm::mat4 model = objects[i].getModelMatrix();                     
+            shader.setMat4("model", model);
+
+            // Fixes normals in case of non-uniform model scaling            
+            glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(model)));
+            shader.setMat3("normalMatrix", normalMatrix);
+
             objects[i].getModel()->Draw(shader);
         }                
 
