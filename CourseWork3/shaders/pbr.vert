@@ -18,7 +18,7 @@ void main()
 {
     TexCoords = aTexCoords; 
     WorldPos = vec3(model * vec4(aPos, 1.0));          
-    Normal = normalMatrix * aNormal;
+    Normal = normalMatrix * aNormal; // Fix normals in case of non-uniform model scaling
 
     gl_Position =  projection * view * vec4(WorldPos, 1.0);
 }
