@@ -30,6 +30,15 @@ struct PointLight {
     float quadratic;    
 };
 
+struct DirLight {
+    vec3 direction;
+    vec3 color;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
 struct Material {        
     vec3 albedo;
     vec3 normal;    
@@ -40,9 +49,12 @@ struct Material {
 
 const float PI                      = 3.14159265359;
 const int   MAX_POINT_LIGHTS_NUMBER = 32;
+const int   MAX_DIR_LIGHTS_NUMBER   = 32;
 
 uniform int pointLightsNumber;
 uniform PointLight pointLights[MAX_POINT_LIGHTS_NUMBER];
+uniform int dirLightsNumber;
+uniform DirLight dirLights[MAX_DIR_LIGHTS_NUMBER];
 
 // ----------------------------------------------------------------------------
 // Easy trick to get tangent-normals to world-space to keep PBR code simplified.
@@ -83,7 +95,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
+    float k = (r * r) / 8.0;
 
     float nom   = NdotV;
     float denom = NdotV * (1.0 - k) + k;
@@ -142,6 +154,39 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragPos, vec3 view
     return (kD * material.albedo / PI + specular) * radiance * NdotL;
 }
 // ----------------------------------------------------------------------------
+vec3 calcDirLight(DirLight light, Material material, vec3 viewDir, vec3 F0)
+{
+    // calculate per-light radiance    
+    vec3 halfway = normalize(viewDir + light.direction);
+    // float distance = length(light.position - fragPos);
+    // float attenuation = 1.0 / (distance * distance); 
+    
+    // Cook-Torrance BRDF
+    float NDF = DistributionGGX(material.normal, halfway, material.roughness);   
+    float G   = GeometrySmith(material.normal, viewDir, light.direction, material.roughness);      
+    vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
+      
+    vec3 nominator    = NDF * G * F; 
+    float NdotV = max(dot(material.normal, viewDir), 0.0);
+    float NdotL = max(dot(material.normal, light.direction), 0.0);
+    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
+    vec3 specular = nominator / denominator;
+        
+    // kS is equal to Fresnel
+    vec3 kS = F;
+    // for energy conservation, the diffuse and specular light can't
+    // be above 1.0 (unless the surface emits light); to preserve this
+    // relationship the diffuse component (kD) should equal 1.0 - kS.
+    vec3 kD = vec3(1.0) - kS;
+    // multiply kD by the inverse metalness such that only non-metals 
+    // have diffuse lighting, or a linear blend if partly metal (pure metals
+    // have no diffuse light).
+    kD *= 1.0 - material.metallic;     
+
+    // scale light by NdotL add to outgoing radiance Lo 
+    return (kD * material.albedo / PI + specular) * light.color * NdotL;      
+}
+// ----------------------------------------------------------------------------
 void main()
 {		
     Material material;
@@ -161,7 +206,10 @@ void main()
     // reflectance equation
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < pointLightsNumber; ++i)     
-        Lo += calcPointLight(pointLights[i], material, WorldPos, V, F0);    
+        Lo += calcPointLight(pointLights[i], material, WorldPos, V, F0);  
+
+    for(int i = 0; i < dirLightsNumber; ++i)
+        Lo += calcDirLight(dirLights[i], material, V, F0);  
     
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).

@@ -102,17 +102,16 @@ int main()
     glfwSetKeyCallback(window, key_callback);
     glfwSetWindowUserPointer(window, &lightManager);
 
-    // Configure global OpenGL state    
+    // Configure global OpenGL state: perform depth test, don't render faces, which don't look at user    
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);   
-    
-    PointLights::size_type pointLightsNumber = min(MAX_NUMBER_OF_POINT_LIGHTS, pointLights.size());   
+    glEnable(GL_CULL_FACE);           
 
     // Set shader in use
-    shader.use();
-    shader.setInt("pointLightsNumber", pointLightsNumber);        
+    shader.use();        
 
     // Setup point lights
+    PointLights::size_type pointLightsNumber = min(MAX_NUMBER_OF_POINT_LIGHTS, pointLights.size());   
+    shader.setInt("pointLightsNumber", pointLightsNumber);   
     for (PointLights::size_type i = 0; i < pointLights.size(); ++i)
     {
         pointLights[i].setColor(pointLights[i].getColor() * glm::vec3(100));
@@ -125,8 +124,21 @@ int main()
         shader.setFloat("pointLights[" + to_string(i) + "].linear", pointLights[i].getLinear());
         shader.setFloat("pointLights[" + to_string(i) + "].quadratic", pointLights[i].getQuadratic());
     }    
-   
-    // TODO: bring here code for setting up spot and directional lights
+    
+    // Setup directional lights
+    DirectionalLights::size_type dirLightsNumber = min(MAX_NUMBER_OF_DIRECTIONAL_LIGHTS, dirLights.size());
+    shader.setInt("dirLightsNumber", dirLightsNumber);
+    for (DirectionalLights::size_type i = 0; i < dirLights.size(); ++i)
+    {
+        dirLights[i].setColor(dirLights[i].getColor() * glm::vec3(100));
+        shader.setVec3("dirLights[" + to_string(i) + "].color", dirLights[i].getColor());
+        shader.setVec3("dirLights[" + to_string(i) + "].direction", dirLights[i].getDirection());
+        shader.setVec3("dirLights[" + to_string(i) + "].ambient", dirLights[i].getAmbient());
+        shader.setVec3("dirLights[" + to_string(i) + "].diffuse", dirLights[i].getDiffuse());
+        shader.setVec3("dirLights[" + to_string(i) + "].specular", dirLights[i].getSpecular());
+    }
+
+    // TODO: bring here code for setting up spot lights
 
     // Render loop    
     while (!glfwWindowShouldClose(window))

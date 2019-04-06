@@ -43,6 +43,7 @@ ipch
 
 # Project specific files and directories
 LightData.txt
+LightDataExample.txt
 ModelData.txt
 glad.c
 stb_image.h
