@@ -39,6 +39,23 @@ struct DirLight {
     vec3 specular;
 };
 
+struct SpotLight{
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
+
+    float cutOff;  //cosine actually
+    float outerCutOff;
+};
+
 struct Material {        
     vec3 albedo;
     vec3 normal;    
@@ -48,13 +65,16 @@ struct Material {
 };
 
 const float PI                      = 3.14159265359;
+const int   MAX_DIR_LIGHTS_NUMBER   = 4;
 const int   MAX_POINT_LIGHTS_NUMBER = 32;
-const int   MAX_DIR_LIGHTS_NUMBER   = 32;
+const int   MAX_SPOT_LIGHTS_NUMBER  = 32;
 
-uniform int pointLightsNumber;
-uniform PointLight pointLights[MAX_POINT_LIGHTS_NUMBER];
 uniform int dirLightsNumber;
 uniform DirLight dirLights[MAX_DIR_LIGHTS_NUMBER];
+uniform int pointLightsNumber;
+uniform PointLight pointLights[MAX_POINT_LIGHTS_NUMBER];
+uniform int spotLightsNumber;
+uniform SpotLight spotLights[MAX_SPOT_LIGHTS_NUMBER];
 
 // ----------------------------------------------------------------------------
 // Easy trick to get tangent-normals to world-space to keep PBR code simplified.
@@ -187,6 +207,47 @@ vec3 calcDirLight(DirLight light, Material material, vec3 viewDir, vec3 F0)
     return (kD * material.albedo / PI + specular) * light.color * NdotL;      
 }
 // ----------------------------------------------------------------------------
+vec3 calcSpotLight(SpotLight light, Material material, vec3 fragPos, vec3 viewDir, vec3 F0)
+{
+    // calculate per-light radiance
+    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 halfway = normalize(viewDir + lightDir);
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (distance * distance);
+    vec3 radiance = light.color * attenuation;
+    
+    // Cook-Torrance BRDF
+    float NDF = DistributionGGX(material.normal, halfway, material.roughness);   
+    float G   = GeometrySmith(material.normal, viewDir, lightDir, material.roughness);      
+    vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
+      
+    vec3 nominator    = NDF * G * F; 
+    float NdotV = max(dot(material.normal, viewDir), 0.0);
+    float NdotL = max(dot(material.normal, lightDir), 0.0);
+    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
+    vec3 specular = nominator / denominator;
+        
+    // kS is equal to Fresnel
+    vec3 kS = F;
+    // for energy conservation, the diffuse and specular light can't
+    // be above 1.0 (unless the surface emits light); to preserve this
+    // relationship the diffuse component (kD) should equal 1.0 - kS.
+    vec3 kD = vec3(1.0) - kS;
+    // multiply kD by the inverse metalness such that only non-metals 
+    // have diffuse lighting, or a linear blend if partly metal (pure metals
+    // have no diffuse light).
+    kD *= 1.0 - material.metallic;     
+
+    // intensity
+    float angle = dot(lightDir, normalize(-light.direction));   
+    float intensity = clamp((angle - light.outerCutOff) / 
+                            (light.cutOff - light.outerCutOff), 
+                            0.0, 1.0);
+
+    // scale light by NdotL add to outgoing radiance Lo 
+    return (kD * material.albedo / PI + specular) * radiance * NdotL;
+}
+// ----------------------------------------------------------------------------
 void main()
 {		
     Material material;
@@ -211,6 +272,9 @@ void main()
     for(int i = 0; i < dirLightsNumber; ++i)
         Lo += calcDirLight(dirLights[i], material, V, F0);  
     
+    for(int i = 0; i < spotLightsNumber; ++i)
+        Lo += calcSpotLight(spotLights[i], material, WorldPos, V, F0);
+
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
     vec3 ambient = vec3(0.03) * material.albedo * material.ao;
