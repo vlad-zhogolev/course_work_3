@@ -31,13 +31,13 @@ void renderPyramid();
 void renderQuad();
 
 // Screen settings
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
+unsigned int screenWidth = 800;
+unsigned int screenHeight = 600;
 
 // Camera settings
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+float lastX = screenWidth / 2.0f;
+float lastY = screenHeight / 2.0f;
 bool firstMouse = true;
 
 // Timing
@@ -68,7 +68,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // glfw window creation   
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "CourseWork3", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "CourseWork3", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -172,7 +172,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
         // Calculate view and projection matrix for current state and position of camera
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();      
         
         // Set shader in use and bind view and projection matrices
@@ -421,6 +421,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+    screenWidth = width;
+    screenHeight = height;
 }
 
 // glfw: whenever the mouse moves, this callback is called
