@@ -245,7 +245,7 @@ vec3 calcSpotLight(SpotLight light, Material material, vec3 fragPos, vec3 viewDi
                             0.0, 1.0);
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * radiance * NdotL;
+    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * intensity * radiance * NdotL;
 }
 // ----------------------------------------------------------------------------
 void main()

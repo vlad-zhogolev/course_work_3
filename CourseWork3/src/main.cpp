@@ -143,18 +143,19 @@ int main()
     SpotLights::size_type spotLightsNumber = min(MAX_NUMBER_OF_SPOT_LIGHTS, spotLights.size());
     shader.setInt("spotLightsNumber", spotLightsNumber);
     for(SpotLights::size_type i = 0; i < spotLights.size(); ++i)
-    {
+    {        
         spotLights[i].setColor(spotLights[i].getColor() * glm::vec3(100));
         shader.setVec3("spotLights[" + to_string(i) + "].ambient", spotLights[i].getAmbient());
         shader.setVec3("spotLights[" + to_string(i) + "].diffuse", spotLights[i].getDiffuse());
         shader.setVec3("spotLights[" + to_string(i) + "].specular", spotLights[i].getSpecular());
         shader.setVec3("spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());
-        shader.setVec3("spotLights[" + to_string(i) + "].color", spotLights[i].getColor());        
+        shader.setVec3("spotLights[" + to_string(i) + "].color", spotLights[i].getColor()); 
+        shader.setVec3("spotLights[" + to_string(i) + "].direction", spotLights[i].getDirection());       
         shader.setFloat("spotLights[" + to_string(i) + "].constant", spotLights[i].getConstant());
         shader.setFloat("spotLights[" + to_string(i) + "].linear", spotLights[i].getLinear());
         shader.setFloat("spotLights[" + to_string(i) + "].quadratic", spotLights[i].getQuadratic());
-        shader.setFloat("spotLights[" + to_string(i) + "].cutOff", spotLights[i].getCutOff());
-        shader.setFloat("spotLights[" + to_string(i) + "].outerCutOff", spotLights[i].getOuterCutOff());
+        shader.setFloat("spotLights[" + to_string(i) + "].cutOff", glm::cos(glm::radians(spotLights[i].getCutOff())));
+        shader.setFloat("spotLights[" + to_string(i) + "].outerCutOff", glm::cos(glm::radians(spotLights[i].getOuterCutOff())));
     }    
 
     // Render loop    

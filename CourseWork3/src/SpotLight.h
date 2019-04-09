@@ -29,8 +29,8 @@ public:
 
     void setPosition(const glm::vec3& position) { _position = position; }
     void setDirection(const glm::vec3& direction) {_direction = direction;}
-    void setCutOff(float _cutOff);
-    void setOuterCutOff(float _cutOff);
+    void setCutOff(float cutOff);
+    void setOuterCutOff(float outerCutOff);
     void setConstant(float constant) { _constant = (constant > 0) ? constant : 1.0; }
     void setLinear(float linear) { _linear = (linear >= 0) ? linear : 1.0; }
     void setQuadratic(float quadratic) { _quadratic = (quadratic >= 0) ? quadratic : 1.0; }
