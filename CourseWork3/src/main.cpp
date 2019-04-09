@@ -92,6 +92,7 @@ int main()
 
     // Compile shaders       
     Shader shader("shaders/pbr.vert", "shaders/pbr.frag");   
+    Shader shaderLightBox("shaders/deferred_light_box.vert", "shaders/deferred_light_box.frag");
     
     // Load scene   
     SceneLoader sceneLoader;
@@ -177,6 +178,7 @@ int main()
         shader.use();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
+        shader.setVec3("cameraPos", camera.Position);
 
         // Render objects
         for (unsigned int i = 0; i < objects.size(); i++)
@@ -197,10 +199,35 @@ int main()
 
         // Update spot lights positions
         for (SpotLights::size_type i = 0; i < spotLights.size(); ++i)        
-            shader.setVec3("spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());
-            
-        shader.setVec3("cameraPos", camera.Position);
+            shader.setVec3("spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());            
         
+        // Render lights on top of scene        
+        shaderLightBox.use();            
+        shaderLightBox.setMat4("projection", projection);
+        shaderLightBox.setMat4("view", view);
+        for (unsigned int i = 0; i < pointLights.size(); ++i)
+        {
+            glm::mat4 model = glm::mat4();
+            model = glm::translate(model, pointLights[i].getPosition());
+            model = glm::scale(model, glm::vec3(0.125f));
+            shaderLightBox.setMat4("model", model);
+            shaderLightBox.setVec3("lightColor", pointLights[i].getColor());
+            renderCube();
+        }
+
+        for (unsigned int i = 0; i < spotLights.size(); ++i)
+        {
+            glm::mat4 model = glm::mat4();
+            model = glm::translate(model, spotLights[i].getPosition());
+            glm::quat rotation;
+            rotation = glm::rotation(glm::vec3(0.0f, -1.0f, 0.0f), glm::normalize(spotLights[i].getDirection()));
+            model *= glm::toMat4(rotation);
+            model = glm::scale(model, glm::vec3(0.25f));
+            shaderLightBox.setMat4("model", model);
+            shaderLightBox.setVec3("lightColor", spotLights[i].getColor());
+            renderPyramid();           
+        }
+
         // Input
         processInput(window, lightManager);
 

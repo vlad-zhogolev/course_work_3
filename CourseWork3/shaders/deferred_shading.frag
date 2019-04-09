@@ -11,7 +11,7 @@ uniform sampler2D gMaterialAmbient;
 uniform sampler2D gMaterialDiffuse;
 uniform sampler2D gMaterialSpecular;
 
-struct DirLight{
+struct DirLight {
 	vec3 direction;
 	vec3 color;
 
@@ -33,7 +33,7 @@ struct PointLight {
     float quadratic;    
 };
 
-struct SpotLight{
+struct SpotLight {
 	vec3 position;
 	vec3 direction;
 	vec3 color;
