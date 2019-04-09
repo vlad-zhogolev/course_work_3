@@ -171,7 +171,7 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragPos, vec3 view
     kD *= 1.0 - material.metallic;     
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (kD * material.albedo / PI + specular) * radiance * NdotL;
+    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * radiance * NdotL;
 }
 // ----------------------------------------------------------------------------
 vec3 calcDirLight(DirLight light, Material material, vec3 viewDir, vec3 F0)
@@ -204,7 +204,7 @@ vec3 calcDirLight(DirLight light, Material material, vec3 viewDir, vec3 F0)
     kD *= 1.0 - material.metallic;     
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (kD * material.albedo / PI + specular) * light.color * NdotL;      
+    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * light.color * NdotL;      
 }
 // ----------------------------------------------------------------------------
 vec3 calcSpotLight(SpotLight light, Material material, vec3 fragPos, vec3 viewDir, vec3 F0)
@@ -245,7 +245,7 @@ vec3 calcSpotLight(SpotLight light, Material material, vec3 fragPos, vec3 viewDi
                             0.0, 1.0);
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (kD * material.albedo / PI + specular) * radiance * NdotL;
+    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * radiance * NdotL;
 }
 // ----------------------------------------------------------------------------
 void main()
