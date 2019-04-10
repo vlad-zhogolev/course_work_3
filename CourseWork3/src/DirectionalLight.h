@@ -8,7 +8,9 @@ class DirectionalLight : public Light
 public:
     DirectionalLight(
     	glm::vec3 direction, glm::vec3 color, 
-    	glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular);
+    	glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular):
+     	Light(color, ambient, diffuse, specular),
+    	_direction(direction){}
     
     glm::vec3 getDirection() { return _direction; }
    
@@ -18,4 +20,4 @@ private:
     glm::vec3 _direction;
 };
 
-#endif
+#endif // !DIRECTIONAL_LIGHT_H

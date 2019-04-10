@@ -25,7 +25,9 @@ public:
     float getLinear() { return _linear; }
     float getQuadratic() { return _quadratic; }
     float getCutOff() { return _cutOff; }
+    float getCutOffInRadians() { return glm::radians(getCutOff()); }
     float getOuterCutOff() { return _outerCutOff; }
+    float getOuterCutOffInRadians() { return glm::radians(getOuterCutOff()); }
 
     void setPosition(const glm::vec3& position) { _position = position; }
     void setDirection(const glm::vec3& direction) {_direction = direction;}
