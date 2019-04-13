@@ -1,22 +1,5 @@
 #version 330 core
 
-// output color
-out vec4 FragColor;
-
-// input data
-in vec2 TexCoords;
-in vec3 WorldPos;
-in vec3 Normal;
-
-// material maps
-uniform sampler2D texture_albedo1;
-uniform sampler2D texture_normal1;
-uniform sampler2D texture_metallic1;
-uniform sampler2D texture_roughness1;
-uniform sampler2D texture_ao1;
-
-uniform vec3 cameraPos;
-
 struct PointLight {
     vec3 position;
     vec3 color;   
@@ -64,10 +47,29 @@ struct Material {
     float roughness;
 };
 
+// output color
+out vec4 FragColor;
+
 const float PI                      = 3.14159265359;
 const int   MAX_DIR_LIGHTS_NUMBER   = 4;
 const int   MAX_POINT_LIGHTS_NUMBER = 32;
 const int   MAX_SPOT_LIGHTS_NUMBER  = 32;
+
+// input data
+in vec2 TexCoords;
+in vec3 WorldPos;
+in vec3 Normal;
+
+// material maps
+uniform sampler2D texture_albedo1;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_metallic1;
+uniform sampler2D texture_roughness1;
+uniform sampler2D texture_ao1;
+
+uniform vec3 cameraPos;
+
+uniform samplerCube skybox;
 
 uniform int dirLightsNumber;
 uniform DirLight dirLights[MAX_DIR_LIGHTS_NUMBER];
@@ -286,5 +288,8 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
-    FragColor = vec4(color, 1.0);
+    vec3 R = reflect(-V, normalize(material.normal));
+    vec3 reflectedColor = texture(skybox, R).xyz;
+
+    FragColor = vec4(reflectedColor * material.metallic + color, 1.0);
 }

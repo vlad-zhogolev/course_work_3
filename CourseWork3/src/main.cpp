@@ -50,6 +50,7 @@ float lastFrame = 0.0f;
 const PointLights::size_type        MAX_NUMBER_OF_POINT_LIGHTS          = 32;
 const SpotLights::size_type         MAX_NUMBER_OF_SPOT_LIGHTS           = 32;
 const DirectionalLights::size_type  MAX_NUMBER_OF_DIRECTIONAL_LIGHTS    = 4;
+const unsigned int                  SKYBOX_TEXTURE_INDEX                = 15;
 
 // Scene contents
 DirectionalLights dirLights;
@@ -121,7 +122,7 @@ int main()
 
     // Configure global OpenGL state: perform depth test, don't render faces, which don't look at user    
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);           
+    glEnable(GL_CULL_FACE);           
 
     // Set shader in use
     shader.use();        
@@ -250,7 +251,7 @@ int main()
         skyboxShader.use();
         skyboxShader.setMat4("projection", projection);
         skyboxShader.setMat4("view", glm::mat4(glm::mat3(camera.GetViewMatrix())));
-        skyboxShader.setInt("skybox", 0);
+        skyboxShader.setInt("skybox", SKYBOX_TEXTURE_INDEX);
 
         // Render skybox
         renderSkybox(cubemapTexture);
@@ -332,7 +333,7 @@ void renderSkybox(unsigned int cubemapTexture){
     }
     glDepthFunc(GL_LEQUAL); // For rendering skybox behind all other objects in scene
     glBindVertexArray(skyboxVAO);
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0 + SKYBOX_TEXTURE_INDEX);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glDepthFunc(GL_LESS);// glDepthMask(GL_TRUE);
