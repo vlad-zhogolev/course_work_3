@@ -135,10 +135,18 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     result.setDiffuse(glm::vec3(color.r, color.g, color.b));
     material->Get(AI_MATKEY_COLOR_SPECULAR, color);
     result.setSpecular(glm::vec3(color.r, color.g, color.b));
+    
     float shininess;
-    material->Get(AI_MATKEY_SHININESS, shininess);
+    material->Get(AI_MATKEY_SHININESS, shininess);    
     result.setShininess(shininess);
+    
+    float opacity;
+    material->Get(AI_MATKEY_OPACITY, opacity);
+    result.setOpacity(opacity);
 
+    float refraction;
+    material->Get(AI_MATKEY_REFRACTI, refraction);
+    result.setRefraction(refraction);
     // return a mesh object created from the extracted mesh data
     return result;
 }

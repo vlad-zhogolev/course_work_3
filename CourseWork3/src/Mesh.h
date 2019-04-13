@@ -51,10 +51,14 @@ public:
     void setDiffuse(glm::vec3 diffuse) { this->diffuse = diffuse; }
     void setSpecular(glm::vec3 specular) { this->specular = specular; }
     void setShininess(float shininess) { this->shininess = shininess; }
+    void setOpacity(float opacity) { _opacity = opacity; }
+    void setRefraction(float refraction) { _refraction = refraction; }
     glm::vec3 getAmbient() { return ambient; }
     glm::vec3 getDiffuse() { return diffuse; }
     glm::vec3 getSpecular() { return specular; }
     float getShininess() { return shininess; }
+    float getOpacity() { return _opacity; }
+    float getRefraction() { return _refraction; }
 
 private:
     // Initializes all the buffer objects/arrays
@@ -75,6 +79,8 @@ private:
     glm::vec3 ambient;
     glm::vec3 diffuse;
     glm::vec3 specular;
+    float _opacity;
+    float _refraction;
     float shininess;
 };
 #endif

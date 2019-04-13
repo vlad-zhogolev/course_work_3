@@ -66,6 +66,8 @@ uniform sampler2D texture_normal1;
 uniform sampler2D texture_metallic1;
 uniform sampler2D texture_roughness1;
 uniform sampler2D texture_ao1;
+uniform float opacityRatio;
+uniform float refractionRatio;
 
 uniform vec3 cameraPos;
 
@@ -288,8 +290,11 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
-    vec3 R = reflect(-V, normalize(material.normal));
-    vec3 reflectedColor = texture(skybox, R).xyz;
+    vec3 reflected = reflect(-V, material.normal);
+    vec3 reflectedColor = texture(skybox, reflected).xyz;
 
-    FragColor = vec4(reflectedColor * material.metallic + color, 1.0);
+    vec3 refracted = refract(-V, material.normal, 1.0 / refractionRatio);
+    vec3 refractedColor = texture(skybox, refracted).xyz;
+
+    FragColor = vec4(refractedColor * (1.0 - opacityRatio) + reflectedColor * material.metallic + color, 1.0);
 }

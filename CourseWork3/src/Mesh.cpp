@@ -82,6 +82,8 @@ void Mesh::Draw(Shader shader)
     // shader.setVec3("diffuse", diffuse);
     // shader.setVec3("specular", specular);
     // shader.setFloat("shininess", BLINN_PHONG * shininess);
+    shader.setFloat("opacityRatio", _opacity);
+    shader.setFloat("refractionRatio", _refraction);
 
     // draw mesh
     glBindVertexArray(VAO);
@@ -100,7 +102,10 @@ void Mesh::Draw(Shader shader)
     // shader.setVec3("diffuse", glm::vec3(0));
     // shader.setVec3("specular", glm::vec3(0));
     // shader.setFloat("shininess", 0);
-    glActiveTexture(GL_TEXTURE0);//set active texture to default
+    shader.setFloat("opacityRatio", 0.0);
+    shader.setFloat("refractionRatio", 0.0);
+
+    glActiveTexture(GL_TEXTURE0); //set active texture to default
 }
 
 void Mesh::setupMesh()
