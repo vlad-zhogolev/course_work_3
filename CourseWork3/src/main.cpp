@@ -246,16 +246,14 @@ int main()
             renderPyramid();           
         }
 
-        //glDepthFunc(GL_LEQUAL);
         // Setup skybox shader and OpenGL for skybox rendering 
         skyboxShader.use();
         skyboxShader.setMat4("projection", projection);
-        skyboxShader.setMat3("view", view);
+        skyboxShader.setMat4("view", glm::mat4(glm::mat3(camera.GetViewMatrix())));
         skyboxShader.setInt("skybox", 0);
 
         // Render skybox
         renderSkybox(cubemapTexture);
-        //glDepthFunc(GL_LESS);
 
         // Input
         processInput(window, lightManager);
@@ -332,12 +330,12 @@ void renderSkybox(unsigned int cubemapTexture){
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
     }
-    // glDepthMask(GL_FALSE); // For rendering skybox behind all other objects in scene
+    glDepthFunc(GL_LEQUAL); // For rendering skybox behind all other objects in scene
     glBindVertexArray(skyboxVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
     glDrawArrays(GL_TRIANGLES, 0, 36);
-    //glDepthFunc(GL_LESS);// glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);// glDepthMask(GL_TRUE);
     glBindVertexArray(0);
 }
 
