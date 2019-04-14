@@ -82,8 +82,8 @@ void Mesh::Draw(Shader shader)
     // shader.setVec3("diffuse", diffuse);
     // shader.setVec3("specular", specular);
     // shader.setFloat("shininess", BLINN_PHONG * shininess);
-    shader.setFloat("opacityRatio", _opacity);
-    shader.setFloat("refractionRatio", _refraction);
+    shader.setFloat("opacityRatio", _opacityRatio);
+    shader.setFloat("refractionRatio", _refractionRatio);
 
     // draw mesh
     glBindVertexArray(VAO);

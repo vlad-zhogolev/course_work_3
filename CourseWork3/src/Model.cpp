@@ -142,11 +142,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     
     float opacity;
     material->Get(AI_MATKEY_OPACITY, opacity);
-    result.setOpacity(opacity);
+    result.setOpacityRatio(opacity);
 
     float refraction;
     material->Get(AI_MATKEY_REFRACTI, refraction);
-    result.setRefraction(refraction);
+    result.setRefractionRatio(refraction);
     // return a mesh object created from the extracted mesh data
     return result;
 }

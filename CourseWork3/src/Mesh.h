@@ -47,18 +47,30 @@ public:
 
     // Render the mesh
     void Draw(Shader shader);
+
     void setAmbient(glm::vec3 ambient) { _ambient = ambient; }
+
     void setDiffuse(glm::vec3 diffuse) { _diffuse = diffuse; }
+
     void setSpecular(glm::vec3 specular) { _specular = specular; }
+
     void setShininess(float shininess) { _shininess = shininess; }
-    void setOpacity(float opacity) { _opacity = opacity; }
-    void setRefraction(float refraction) { _refraction = refraction; }
+
+    void setOpacityRatio(float opacity) { _opacityRatio = opacity; }
+
+    void setRefractionRatio(float refraction) { _refractionRatio = refraction; }
+
     glm::vec3 getAmbient() { return _ambient; }
+
     glm::vec3 getDiffuse() { return _diffuse; }
+
     glm::vec3 getSpecular() { return _specular; }
+
     float getShininess() { return _shininess; }
-    float getOpacity() { return _opacity; }
-    float getRefraction() { return _refraction; }
+
+    float getOpacityRatio() { return _opacityRatio; }
+
+    float getRefractionRatio() { return _refractionRatio; }
 
 private:
     // Initializes all the buffer objects/arrays
@@ -79,8 +91,8 @@ private:
     glm::vec3 _ambient;
     glm::vec3 _diffuse;
     glm::vec3 _specular;
-    float _opacity;
-    float _refraction;
+    float _opacityRatio;
+    float _refractionRatio;
     float _shininess;
 };
 #endif
