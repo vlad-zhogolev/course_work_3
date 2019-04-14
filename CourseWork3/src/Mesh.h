@@ -47,16 +47,16 @@ public:
 
     // Render the mesh
     void Draw(Shader shader);
-    void setAmbient(glm::vec3 ambient) { this->ambient = ambient; }
-    void setDiffuse(glm::vec3 diffuse) { this->diffuse = diffuse; }
-    void setSpecular(glm::vec3 specular) { this->specular = specular; }
-    void setShininess(float shininess) { this->shininess = shininess; }
+    void setAmbient(glm::vec3 ambient) { _ambient = ambient; }
+    void setDiffuse(glm::vec3 diffuse) { _diffuse = diffuse; }
+    void setSpecular(glm::vec3 specular) { _specular = specular; }
+    void setShininess(float shininess) { _shininess = shininess; }
     void setOpacity(float opacity) { _opacity = opacity; }
     void setRefraction(float refraction) { _refraction = refraction; }
-    glm::vec3 getAmbient() { return ambient; }
-    glm::vec3 getDiffuse() { return diffuse; }
-    glm::vec3 getSpecular() { return specular; }
-    float getShininess() { return shininess; }
+    glm::vec3 getAmbient() { return _ambient; }
+    glm::vec3 getDiffuse() { return _diffuse; }
+    glm::vec3 getSpecular() { return _specular; }
+    float getShininess() { return _shininess; }
     float getOpacity() { return _opacity; }
     float getRefraction() { return _refraction; }
 
@@ -76,12 +76,12 @@ private:
     std::vector<Texture> _textures; 
 
     // Material properties
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
+    glm::vec3 _ambient;
+    glm::vec3 _diffuse;
+    glm::vec3 _specular;
     float _opacity;
     float _refraction;
-    float shininess;
+    float _shininess;
 };
 #endif
 
