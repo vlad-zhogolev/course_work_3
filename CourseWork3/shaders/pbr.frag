@@ -160,12 +160,11 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, v
     vec3 nominator    = D * G * F; 
     float NdotV = max(dot(material.normal, directionToView), 0.0);
     float NdotL = max(dot(material.normal, directionToLight), 0.0);
-    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
+    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001  for preventing division by zero.
     vec3 specular = nominator / denominator;
-        
-    // kS is equal to Fresnel
-    vec3 kS = F;   
-    vec3 kD = vec3(1.0) - kS;
+       
+    // kS is equal to Fresnel 
+    vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - material.metallic;     
 
     // scale light by NdotL add to outgoing radiance Lo 
@@ -173,26 +172,22 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, v
 }
 // ----------------------------------------------------------------------------
 vec3 calcDirLight(DirLight light, Material material, vec3 directionToView, vec3 F0)
-{
-    // calculate per-light radiance    
+{   
     vec3 halfway = normalize(directionToView + light.direction);
-    // float distance = length(light.position - fragmentPositon);
-    // float attenuation = 1.0 / (distance * distance); 
     
     // Cook-Torrance BRDF
     float D = distributionGGX(material.normal, halfway, material.roughness);   
-    float G = geometrySmith(material.normal, directionToView, light.direction, material.roughness);      
+    float G = geometrySmith(material.normal, directionToView, -light.direction, material.roughness);      
     vec3  F = fresnelSchlick(max(dot(halfway, directionToView), 0.0), F0);
       
     vec3 nominator    = D * G * F; 
     float NdotV = max(dot(material.normal, directionToView), 0.0);
-    float NdotL = max(dot(material.normal, light.direction), 0.0);
-    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
+    float NdotL = max(dot(material.normal, -light.direction), 0.0);
+    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 for preventing division by zero.
     vec3 specular = nominator / denominator;
-        
-    // kS is equal to Fresnel
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
+      
+    // kS is equal to Fresnel     
+    vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - material.metallic;     
 
     // scale light by NdotL add to outgoing radiance Lo 
@@ -216,12 +211,11 @@ vec3 calcSpotLight(SpotLight light, Material material, vec3 fragmentPositon, vec
     vec3 nominator    = D * G * F; 
     float NdotV = max(dot(material.normal, directionToView), 0.0);
     float NdotL = max(dot(material.normal, directionToLight), 0.0);
-    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
+    float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 for preventing division by zero.
     vec3 specular = nominator / denominator;
         
     // kS is equal to Fresnel
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
+    vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - material.metallic;     
 
     // intensity
