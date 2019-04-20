@@ -143,54 +143,48 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 // ----------------------------------------------------------------------------
-vec3 calcPointLight(PointLight light, Material material, vec3 fragPos, vec3 viewDir, vec3 F0)
+vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, vec3 viewDir, vec3 F0)
 {
     // calculate per-light radiance
-    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 lightDir = normalize(light.position - fragmentPositon);
     vec3 halfway = normalize(viewDir + lightDir);
-    float distance = length(light.position - fragPos);
+    float distance = length(light.position - fragmentPositon);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
     vec3 radiance = light.color * attenuation;
     
     // Cook-Torrance BRDF
-    float NDF = DistributionGGX(material.normal, halfway, material.roughness);   
+    float D = DistributionGGX(material.normal, halfway, material.roughness);   
     float G   = GeometrySmith(material.normal, viewDir, lightDir, material.roughness);      
     vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
       
-    vec3 nominator    = NDF * G * F; 
+    vec3 nominator    = D * G * F; 
     float NdotV = max(dot(material.normal, viewDir), 0.0);
     float NdotL = max(dot(material.normal, lightDir), 0.0);
     float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
     vec3 specular = nominator / denominator;
         
     // kS is equal to Fresnel
-    vec3 kS = F;
-    // for energy conservation, the diffuse and specular light can't
-    // be above 1.0 (unless the surface emits light); to preserve this
-    // relationship the diffuse component (kD) should equal 1.0 - kS.
+    vec3 kS = F;   
     vec3 kD = vec3(1.0) - kS;
-    // multiply kD by the inverse metalness such that only non-metals 
-    // have diffuse lighting, or a linear blend if partly metal (pure metals
-    // have no diffuse light).
     kD *= 1.0 - material.metallic;     
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * radiance * NdotL;
+    return (kD * material.albedo / PI + specular) * radiance * NdotL;
 }
 // ----------------------------------------------------------------------------
 vec3 calcDirLight(DirLight light, Material material, vec3 viewDir, vec3 F0)
 {
     // calculate per-light radiance    
     vec3 halfway = normalize(viewDir + light.direction);
-    // float distance = length(light.position - fragPos);
+    // float distance = length(light.position - fragmentPositon);
     // float attenuation = 1.0 / (distance * distance); 
     
     // Cook-Torrance BRDF
-    float NDF = DistributionGGX(material.normal, halfway, material.roughness);   
+    float D = DistributionGGX(material.normal, halfway, material.roughness);   
     float G   = GeometrySmith(material.normal, viewDir, light.direction, material.roughness);      
     vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
       
-    vec3 nominator    = NDF * G * F; 
+    vec3 nominator    = D * G * F; 
     float NdotV = max(dot(material.normal, viewDir), 0.0);
     float NdotL = max(dot(material.normal, light.direction), 0.0);
     float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
@@ -208,24 +202,24 @@ vec3 calcDirLight(DirLight light, Material material, vec3 viewDir, vec3 F0)
     kD *= 1.0 - material.metallic;     
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * light.color * NdotL;      
+    return (kD * material.albedo / PI + specular) * light.color * NdotL;      
 }
 // ----------------------------------------------------------------------------
-vec3 calcSpotLight(SpotLight light, Material material, vec3 fragPos, vec3 viewDir, vec3 F0)
+vec3 calcSpotLight(SpotLight light, Material material, vec3 fragmentPositon, vec3 viewDir, vec3 F0)
 {
     // calculate per-light radiance
-    vec3 lightDir = normalize(light.position - fragPos);
+    vec3 lightDir = normalize(light.position - fragmentPositon);
     vec3 halfway = normalize(viewDir + lightDir);
-    float distance = length(light.position - fragPos);
+    float distance = length(light.position - fragmentPositon);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
     vec3 radiance = light.color * attenuation;
     
     // Cook-Torrance BRDF
-    float NDF = DistributionGGX(material.normal, halfway, material.roughness);   
+    float D = DistributionGGX(material.normal, halfway, material.roughness);   
     float G   = GeometrySmith(material.normal, viewDir, lightDir, material.roughness);      
     vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
       
-    vec3 nominator    = NDF * G * F; 
+    vec3 nominator    = D * G * F; 
     float NdotV = max(dot(material.normal, viewDir), 0.0);
     float NdotL = max(dot(material.normal, lightDir), 0.0);
     float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
@@ -249,7 +243,7 @@ vec3 calcSpotLight(SpotLight light, Material material, vec3 fragPos, vec3 viewDi
                             0.0, 1.0);
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (light.ambient * material.albedo + kD * light.diffuse * material.albedo / PI + light.specular * specular) * intensity * radiance * NdotL;
+    return (kD * material.albedo / PI + specular) * intensity * radiance * NdotL;
 }
 // ----------------------------------------------------------------------------
 void main()
@@ -282,7 +276,7 @@ void main()
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
     vec3 ambient = vec3(0.03) * material.albedo * material.ao;
-    
+
     vec3 color = ambient + Lo;
 
     // HDR tonemapping
@@ -290,11 +284,15 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
-    vec3 reflected = reflect(-V, material.normal);
-    vec3 reflectedColor = texture(skybox, reflected).xyz;
-
     vec3 refracted = refract(-V, material.normal, 1.0 / refractionRatio);
     vec3 refractedColor = texture(skybox, refracted).xyz;
+    color += refractedColor * (1.0 - opacityRatio);
 
-    FragColor = vec4(refractedColor * (1.0 - opacityRatio) + reflectedColor * material.metallic + color, 1.0);
+    vec3 reflected = reflect(-V, material.normal);
+    vec3 reflectedColor = texture(skybox, reflected).xyz;
+    color += reflectedColor * material.metallic;
+    //DirLight l = DirLight(-reflected, 1000 * reflectedColor, vec3(1.0), vec3(1.0), vec3(1.0));
+    //color += calcDirLight(l, material, V, F0) * material.metallic;
+
+    FragColor = vec4(color, 1.0);
 }
