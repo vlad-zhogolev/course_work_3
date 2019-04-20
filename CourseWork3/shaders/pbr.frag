@@ -102,7 +102,7 @@ vec3 getNormalFromMap()
     return normalize(TBN * tangentNormal);
 }
 // ----------------------------------------------------------------------------
-float DistributionGGX(vec3 N, vec3 H, float roughness)
+float distributionGGX(vec3 N, vec3 H, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;
@@ -127,9 +127,9 @@ float GeometrySchlickGGX(float NdotV, float roughness)
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+float geometrySmith(vec3 N, vec3 directionToView, vec3 L, float roughness)
 {
-    float NdotV = max(dot(N, V), 0.0);
+    float NdotV = max(dot(N, directionToView), 0.0);
     float NdotL = max(dot(N, L), 0.0);
 
     float ggx2 = GeometrySchlickGGX(NdotV, roughness);
@@ -143,23 +143,23 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 // ----------------------------------------------------------------------------
-vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, vec3 viewDir, vec3 F0)
+vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, vec3 directionToView, vec3 F0)
 {
     // calculate per-light radiance
-    vec3 lightDir = normalize(light.position - fragmentPositon);
-    vec3 halfway = normalize(viewDir + lightDir);
+    vec3 directionToLight = normalize(light.position - fragmentPositon);
+    vec3 halfway = normalize(directionToView + directionToLight);
     float distance = length(light.position - fragmentPositon);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
     vec3 radiance = light.color * attenuation;
     
     // Cook-Torrance BRDF
-    float D = DistributionGGX(material.normal, halfway, material.roughness);   
-    float G   = GeometrySmith(material.normal, viewDir, lightDir, material.roughness);      
-    vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
+    float D = distributionGGX(material.normal, halfway, material.roughness);   
+    float G = geometrySmith(material.normal, directionToView, directionToLight, material.roughness);      
+    vec3  F = fresnelSchlick(max(dot(halfway, directionToView), 0.0), F0);
       
     vec3 nominator    = D * G * F; 
-    float NdotV = max(dot(material.normal, viewDir), 0.0);
-    float NdotL = max(dot(material.normal, lightDir), 0.0);
+    float NdotV = max(dot(material.normal, directionToView), 0.0);
+    float NdotL = max(dot(material.normal, directionToLight), 0.0);
     float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
     vec3 specular = nominator / denominator;
         
@@ -172,72 +172,60 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, v
     return (kD * material.albedo / PI + specular) * radiance * NdotL;
 }
 // ----------------------------------------------------------------------------
-vec3 calcDirLight(DirLight light, Material material, vec3 viewDir, vec3 F0)
+vec3 calcDirLight(DirLight light, Material material, vec3 directionToView, vec3 F0)
 {
     // calculate per-light radiance    
-    vec3 halfway = normalize(viewDir + light.direction);
+    vec3 halfway = normalize(directionToView + light.direction);
     // float distance = length(light.position - fragmentPositon);
     // float attenuation = 1.0 / (distance * distance); 
     
     // Cook-Torrance BRDF
-    float D = DistributionGGX(material.normal, halfway, material.roughness);   
-    float G   = GeometrySmith(material.normal, viewDir, light.direction, material.roughness);      
-    vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
+    float D = distributionGGX(material.normal, halfway, material.roughness);   
+    float G = geometrySmith(material.normal, directionToView, light.direction, material.roughness);      
+    vec3  F = fresnelSchlick(max(dot(halfway, directionToView), 0.0), F0);
       
     vec3 nominator    = D * G * F; 
-    float NdotV = max(dot(material.normal, viewDir), 0.0);
+    float NdotV = max(dot(material.normal, directionToView), 0.0);
     float NdotL = max(dot(material.normal, light.direction), 0.0);
     float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
     vec3 specular = nominator / denominator;
         
     // kS is equal to Fresnel
     vec3 kS = F;
-    // for energy conservation, the diffuse and specular light can't
-    // be above 1.0 (unless the surface emits light); to preserve this
-    // relationship the diffuse component (kD) should equal 1.0 - kS.
     vec3 kD = vec3(1.0) - kS;
-    // multiply kD by the inverse metalness such that only non-metals 
-    // have diffuse lighting, or a linear blend if partly metal (pure metals
-    // have no diffuse light).
     kD *= 1.0 - material.metallic;     
 
     // scale light by NdotL add to outgoing radiance Lo 
     return (kD * material.albedo / PI + specular) * light.color * NdotL;      
 }
 // ----------------------------------------------------------------------------
-vec3 calcSpotLight(SpotLight light, Material material, vec3 fragmentPositon, vec3 viewDir, vec3 F0)
+vec3 calcSpotLight(SpotLight light, Material material, vec3 fragmentPositon, vec3 directionToView, vec3 F0)
 {
     // calculate per-light radiance
-    vec3 lightDir = normalize(light.position - fragmentPositon);
-    vec3 halfway = normalize(viewDir + lightDir);
+    vec3 directionToLight = normalize(light.position - fragmentPositon);
+    vec3 halfway = normalize(directionToView + directionToLight);
     float distance = length(light.position - fragmentPositon);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
     vec3 radiance = light.color * attenuation;
     
     // Cook-Torrance BRDF
-    float D = DistributionGGX(material.normal, halfway, material.roughness);   
-    float G   = GeometrySmith(material.normal, viewDir, lightDir, material.roughness);      
-    vec3  F   = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
+    float D = distributionGGX(material.normal, halfway, material.roughness);   
+    float G = geometrySmith(material.normal, directionToView, directionToLight, material.roughness);      
+    vec3  F = fresnelSchlick(max(dot(halfway, directionToView), 0.0), F0);
       
     vec3 nominator    = D * G * F; 
-    float NdotV = max(dot(material.normal, viewDir), 0.0);
-    float NdotL = max(dot(material.normal, lightDir), 0.0);
+    float NdotV = max(dot(material.normal, directionToView), 0.0);
+    float NdotL = max(dot(material.normal, directionToLight), 0.0);
     float denominator = 4 * NdotV * NdotL + 0.001; // 0.001 to prevent divide by zero.
     vec3 specular = nominator / denominator;
         
     // kS is equal to Fresnel
     vec3 kS = F;
-    // for energy conservation, the diffuse and specular light can't
-    // be above 1.0 (unless the surface emits light); to preserve this
-    // relationship the diffuse component (kD) should equal 1.0 - kS.
     vec3 kD = vec3(1.0) - kS;
-    // multiply kD by the inverse metalness such that only non-metals 
-    // have diffuse lighting, or a linear blend if partly metal (pure metals
-    // have no diffuse light).
     kD *= 1.0 - material.metallic;     
 
     // intensity
-    float angle = dot(lightDir, normalize(-light.direction));   
+    float angle = dot(directionToLight, normalize(-light.direction));   
     float intensity = clamp((angle - light.outerCutOff) / 
                             (light.cutOff - light.outerCutOff), 
                             0.0, 1.0);
@@ -255,7 +243,7 @@ void main()
     material.ao        = texture(texture_ao1, TexCoords).r;
     material.normal    = getNormalFromMap();
 
-    vec3 V = normalize(cameraPos - WorldPos);
+    vec3 directionToView = normalize(cameraPos - WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -265,16 +253,14 @@ void main()
     // reflectance equation
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < pointLightsNumber; ++i)     
-        Lo += calcPointLight(pointLights[i], material, WorldPos, V, F0);  
+        Lo += calcPointLight(pointLights[i], material, WorldPos, directionToView, F0);  
 
     for(int i = 0; i < dirLightsNumber; ++i)
-        Lo += calcDirLight(dirLights[i], material, V, F0);  
+        Lo += calcDirLight(dirLights[i], material, directionToView, F0);  
     
     for(int i = 0; i < spotLightsNumber; ++i)
-        Lo += calcSpotLight(spotLights[i], material, WorldPos, V, F0);
+        Lo += calcSpotLight(spotLights[i], material, WorldPos, directionToView, F0);
 
-    // ambient lighting (note that the next IBL tutorial will replace 
-    // this ambient lighting with environment lighting).
     vec3 ambient = vec3(0.03) * material.albedo * material.ao;
 
     vec3 color = ambient + Lo;
@@ -284,15 +270,13 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
-    vec3 refracted = refract(-V, material.normal, 1.0 / refractionRatio);
+    vec3 refracted = refract(-directionToView, material.normal, 1.0 / refractionRatio);
     vec3 refractedColor = texture(skybox, refracted).xyz;
     color += refractedColor * (1.0 - opacityRatio);
 
-    vec3 reflected = reflect(-V, material.normal);
+    vec3 reflected = reflect(-directionToView, material.normal);
     vec3 reflectedColor = texture(skybox, reflected).xyz;
     color += reflectedColor * material.metallic;
-    //DirLight l = DirLight(-reflected, 1000 * reflectedColor, vec3(1.0), vec3(1.0), vec3(1.0));
-    //color += calcDirLight(l, material, V, F0) * material.metallic;
 
     FragColor = vec4(color, 1.0);
 }
