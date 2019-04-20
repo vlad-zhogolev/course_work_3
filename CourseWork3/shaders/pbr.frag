@@ -149,7 +149,7 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragPos, vec3 view
     vec3 lightDir = normalize(light.position - fragPos);
     vec3 halfway = normalize(viewDir + lightDir);
     float distance = length(light.position - fragPos);
-    float attenuation = 1.0 / (distance * distance);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
     vec3 radiance = light.color * attenuation;
     
     // Cook-Torrance BRDF
@@ -217,7 +217,7 @@ vec3 calcSpotLight(SpotLight light, Material material, vec3 fragPos, vec3 viewDi
     vec3 lightDir = normalize(light.position - fragPos);
     vec3 halfway = normalize(viewDir + lightDir);
     float distance = length(light.position - fragPos);
-    float attenuation = 1.0 / (distance * distance);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
     vec3 radiance = light.color * attenuation;
     
     // Cook-Torrance BRDF
