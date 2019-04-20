@@ -144,13 +144,9 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 }
 // ----------------------------------------------------------------------------
 vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, vec3 directionToView, vec3 F0)
-{
-    // calculate per-light radiance
+{  
     vec3 directionToLight = normalize(light.position - fragmentPositon);
-    vec3 halfway = normalize(directionToView + directionToLight);
-    float distance = length(light.position - fragmentPositon);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
-    vec3 radiance = light.color * attenuation;
+    vec3 halfway = normalize(directionToView + directionToLight);    
     
     // Cook-Torrance BRDF
     float D = distributionGGX(material.normal, halfway, material.roughness);   
@@ -167,8 +163,11 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, v
     vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - material.metallic;     
 
+    float distance = length(light.position - fragmentPositon);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
+
     // scale light by NdotL add to outgoing radiance Lo 
-    return (kD * material.albedo / PI + specular) * radiance * NdotL;
+    return (kD * material.albedo / PI + specular) *  light.color * attenuation * NdotL;
 }
 // ----------------------------------------------------------------------------
 vec3 calcDirLight(DirLight light, Material material, vec3 directionToView, vec3 F0)
@@ -196,13 +195,9 @@ vec3 calcDirLight(DirLight light, Material material, vec3 directionToView, vec3 
 // ----------------------------------------------------------------------------
 vec3 calcSpotLight(SpotLight light, Material material, vec3 fragmentPositon, vec3 directionToView, vec3 F0)
 {
-    // calculate per-light radiance
     vec3 directionToLight = normalize(light.position - fragmentPositon);
     vec3 halfway = normalize(directionToView + directionToLight);
-    float distance = length(light.position - fragmentPositon);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
-    vec3 radiance = light.color * attenuation;
-    
+       
     // Cook-Torrance BRDF
     float D = distributionGGX(material.normal, halfway, material.roughness);   
     float G = geometrySmith(material.normal, directionToView, directionToLight, material.roughness);      
@@ -218,6 +213,10 @@ vec3 calcSpotLight(SpotLight light, Material material, vec3 fragmentPositon, vec
     vec3 kD = vec3(1.0) - F;
     kD *= 1.0 - material.metallic;     
 
+    // attenuation
+    float distance = length(light.position - fragmentPositon);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
+
     // intensity
     float angle = dot(directionToLight, normalize(-light.direction));   
     float intensity = clamp((angle - light.outerCutOff) / 
@@ -225,7 +224,7 @@ vec3 calcSpotLight(SpotLight light, Material material, vec3 fragmentPositon, vec
                             0.0, 1.0);
 
     // scale light by NdotL add to outgoing radiance Lo 
-    return (kD * material.albedo / PI + specular) * intensity * radiance * NdotL;
+    return (kD * material.albedo / PI + specular) * intensity * light.color * NdotL;
 }
 // ----------------------------------------------------------------------------
 void main()
