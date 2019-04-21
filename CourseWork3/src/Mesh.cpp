@@ -13,8 +13,8 @@ std::string to_string(TextureType type)
             return "texture_normal";
         case TextureType::Metallic:
             return "texture_metallic";
-        case TextureType::AmbientOcclusion:
-            return "texture_ao";
+        // case TextureType::AmbientOcclusion:
+        //     return "texture_ao";
         case TextureType::Roughness:
             return "texture_roughness";    
     }
@@ -36,7 +36,7 @@ void Mesh::Draw(Shader shader)
     unsigned int diffuseNr = 0;   
     unsigned int normalNr = 0;
     unsigned int metallicNr = 0;
-    unsigned int ambientOcclusionNr = 0;
+    // unsigned int ambientOcclusionNr = 0;
     unsigned int roughnessNr = 0;
 
     // Shader configuration    
@@ -62,9 +62,9 @@ void Mesh::Draw(Shader shader)
          case TextureType::Metallic:
              number = ++metallicNr;
              break;
-         case TextureType::AmbientOcclusion:
-             number = ++ambientOcclusionNr;
-             break;
+         // case TextureType::AmbientOcclusion:
+         //     number = ++ambientOcclusionNr;
+         //     break;
          case TextureType::Roughness:
              number = ++roughnessNr;
              break;

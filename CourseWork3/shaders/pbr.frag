@@ -43,7 +43,6 @@ struct Material {
     vec3 albedo;
     vec3 normal;    
     float metallic;
-    float ao;
     float roughness;
 };
 
@@ -65,7 +64,6 @@ uniform sampler2D texture_albedo1;
 uniform sampler2D texture_normal1;
 uniform sampler2D texture_metallic1;
 uniform sampler2D texture_roughness1;
-uniform sampler2D texture_ao1;
 uniform float opacityRatio;
 uniform float refractionRatio;
 
@@ -233,7 +231,6 @@ void main()
     material.albedo    = pow(texture(texture_albedo1, TexCoords).rgb, vec3(2.2));
     material.metallic  = texture(texture_metallic1, TexCoords).r;
     material.roughness = texture(texture_roughness1, TexCoords).r;
-    material.ao        = texture(texture_ao1, TexCoords).r;
     material.normal    = getNormalFromMap();
 
     vec3 directionToView = normalize(cameraPos - WorldPos);
@@ -254,7 +251,7 @@ void main()
     for(int i = 0; i < spotLightsNumber; ++i)
         Lo += calcSpotLight(spotLights[i], material, WorldPos, directionToView, F0);
 
-    vec3 ambient = vec3(0.03) * material.albedo * material.ao;
+    vec3 ambient = vec3(0.03) * material.albedo;
 
     vec3 color = ambient + Lo;
 

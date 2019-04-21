@@ -12,13 +12,11 @@
 #include <vector>
 #include <memory>
 
-//using namespace std;
-
 enum class TextureType {
     Albedo,
     Normal,
     Metallic,
-    AmbientOcclusion,
+    // AmbientOcclusion,
     Roughness    
 };
 
