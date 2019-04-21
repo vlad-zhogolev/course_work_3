@@ -2,6 +2,7 @@
 #define LIGHT_MANAGER_H
 
 #include <vector>
+#include "Aliases.h"
 #include "PointLight.h"
 #include "SpotLight.h"
 #include <GLFW/glfw3.h>
@@ -31,7 +32,7 @@ class LightManager
     static const glm::vec3 FRONT;
 
 public:
-    LightManager(std::vector<PointLight>& pointLights, std::vector<SpotLight>& spotLights) : pointLights(pointLights), spotLights(spotLights) {};    
+    LightManager(PointLights& pointLights, SpotLights& spotLights) : pointLights(pointLights), spotLights(spotLights) {};    
     void switchToNext();
     void switchToPrevious();
     void switchLightType(ActiveLightType type);
@@ -40,8 +41,8 @@ public:
     void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
     void updateDeltaTime(float deltaTime) { this->deltaTime = deltaTime >= 0 ? deltaTime : 0; }
 private:    
-    std::vector<PointLight>& pointLights;
-    std::vector<SpotLight>& spotLights;
+    PointLights& pointLights;
+    SpotLights& spotLights;
     int curPointLight = 0;
     int curSpotLight = 0;
     ActiveLightType activeType = ActiveLightType::NONE;

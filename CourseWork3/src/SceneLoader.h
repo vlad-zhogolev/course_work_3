@@ -38,7 +38,7 @@ private:
     PointLight loadPointLight(std::stringstream& lightData, bool& good);
     SpotLight loadSpotLight(std::stringstream& lightData, bool& good);
 
-    int getModelIndex(std::string path, const std::vector<std::shared_ptr<Model>>& modles);
+    int getModelIndex(std::string path, const Models& modles);
 
     glm::vec3 getVec3(std::stringstream& data);   
 

@@ -197,7 +197,7 @@ SpotLight SceneLoader::loadSpotLight(std::stringstream & lightData, bool& good)
     return spotLight;
 }
 
-int SceneLoader::getModelIndex(string path, const std::vector<std::shared_ptr<Model>>& models)
+int SceneLoader::getModelIndex(string path, const Models& models)
 {
     int i = 0;
     bool modelExists = false;

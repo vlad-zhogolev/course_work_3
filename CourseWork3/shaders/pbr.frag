@@ -172,7 +172,7 @@ vec3 calcPointLight(PointLight light, Material material, vec3 fragmentPositon, v
 // ----------------------------------------------------------------------------
 vec3 calcDirLight(DirLight light, Material material, vec3 directionToView, vec3 F0)
 {   
-    vec3 halfway = normalize(directionToView + light.direction);
+    vec3 halfway = normalize(directionToView - light.direction);
     
     // Cook-Torrance BRDF
     float D = distributionGGX(material.normal, halfway, material.roughness);   
@@ -258,18 +258,19 @@ void main()
 
     vec3 color = ambient + Lo;
 
+    vec3 reflected = reflect(-directionToView, material.normal);
+    vec3 reflectedColor = texture(skybox, reflected).xyz;
+    color += reflectedColor * material.metallic;
+
+    vec3 refracted = refract(-directionToView, material.normal, 1.0 / refractionRatio);
+    vec3 refractedColor = texture(skybox, refracted).xyz;
+    //color = mix(refractedColor, color, opacityRatio);
+    color += refractedColor * (1.0 - opacityRatio);
+
     // HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
-
-    vec3 refracted = refract(-directionToView, material.normal, 1.0 / refractionRatio);
-    vec3 refractedColor = texture(skybox, refracted).xyz;
-    color += refractedColor * (1.0 - opacityRatio);
-
-    vec3 reflected = reflect(-directionToView, material.normal);
-    vec3 reflectedColor = texture(skybox, reflected).xyz;
-    color += reflectedColor * material.metallic;
 
     FragColor = vec4(color, 1.0);
 }
