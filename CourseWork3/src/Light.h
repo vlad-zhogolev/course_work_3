@@ -10,28 +10,16 @@ class Light
 public:
     Light() = default;
 
-    Light(glm::vec3 color/*, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular*/)
-        : _color(color)
-        // , _ambient(ambient)
-        // , _diffuse(diffuse)
-        // , _specular(specular)
+    Light(glm::vec3 color)
+        :_color(color)
         {}
 
     void setColor(glm::vec3 color) { _color = color; }     
-    void setAmbient(glm::vec3 ambient) { _ambient = ambient; }
-    void setDiffuse(glm::vec3 diffuse) { _diffuse = diffuse; }
-    void setSpecular(glm::vec3 specular) { _specular = specular; }
 
     glm::vec3 getColor() { return _color; } 
-    glm::vec3 getAmbient() { return _ambient; }
-    glm::vec3 getDiffuse() { return _diffuse; }
-    glm::vec3 getSpecular() { return _specular; }
    
 protected:    
     glm::vec3 _color;
-    glm::vec3 _ambient;
-    glm::vec3 _diffuse;
-    glm::vec3 _specular;
 };
 
 

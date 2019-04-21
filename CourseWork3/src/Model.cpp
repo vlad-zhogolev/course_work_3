@@ -111,26 +111,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     // normal maps
     std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, TextureType::Normal); // map_Bump in .mtl
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-    // ao maps
-    // std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, TextureType::AmbientOcclusion); // map_Ka in .mtl
-    // textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
     // roughness maps
     std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_NORMALS, TextureType::Roughness); // map_Kn in .mtl
     textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
 
     Mesh result(vertices, indices, textures);
-    // store mesh's material properties
-    aiColor3D color;
-    material->Get(AI_MATKEY_COLOR_AMBIENT, color);
-    result.setAmbient(glm::vec3(color.r, color.g, color.b));
-    material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-    result.setDiffuse(glm::vec3(color.r, color.g, color.b));
-    material->Get(AI_MATKEY_COLOR_SPECULAR, color);
-    result.setSpecular(glm::vec3(color.r, color.g, color.b));
-    
-    float shininess;
-    material->Get(AI_MATKEY_SHININESS, shininess);    
-    result.setShininess(shininess);
     
     float opacity;
     material->Get(AI_MATKEY_OPACITY, opacity);

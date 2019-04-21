@@ -13,8 +13,6 @@ std::string to_string(TextureType type)
             return "texture_normal";
         case TextureType::Metallic:
             return "texture_metallic";
-        // case TextureType::AmbientOcclusion:
-        //     return "texture_ao";
         case TextureType::Roughness:
             return "texture_roughness";    
     }
@@ -62,9 +60,6 @@ void Mesh::Draw(Shader shader)
          case TextureType::Metallic:
              number = ++metallicNr;
              break;
-         // case TextureType::AmbientOcclusion:
-         //     number = ++ambientOcclusionNr;
-         //     break;
          case TextureType::Roughness:
              number = ++roughnessNr;
              break;
@@ -76,12 +71,6 @@ void Mesh::Draw(Shader shader)
          glBindTexture(GL_TEXTURE_2D, _textures[i].id);
      }
     
-    //bind material properties
-    //PBR shader doesn't have them
-    // shader.setVec3("ambient", ambient);
-    // shader.setVec3("diffuse", diffuse);
-    // shader.setVec3("specular", specular);
-    // shader.setFloat("shininess", BLINN_PHONG * shininess);
     shader.setFloat("opacityRatio", _opacityRatio);
     shader.setFloat("refractionRatio", _refractionRatio);
 
@@ -98,10 +87,6 @@ void Mesh::Draw(Shader shader)
     }
 
     //set material properties to default
-    // shader.setVec3("ambient", glm::vec3(0));
-    // shader.setVec3("diffuse", glm::vec3(0));
-    // shader.setVec3("specular", glm::vec3(0));
-    // shader.setFloat("shininess", 0);
     shader.setFloat("opacityRatio", 0.0);
     shader.setFloat("refractionRatio", 0.0);
 
@@ -118,9 +103,6 @@ void Mesh::setupMesh()
     glBindVertexArray(VAO);
     // Load data into vertex buffers
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // A great thing about structs is that their memory layout is sequential for all its items.
-    // The effect is that a pointer can be simply passed to the struct and it translates perfectly to a glm::vec3/2 array which
-    // again translates to 3/2 floats which translates to a byte array.
     glBufferData(GL_ARRAY_BUFFER, _vertices.size() * sizeof(Vertex), &_vertices[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);

@@ -116,14 +116,8 @@ DirectionalLight SceneLoader::loadDirectionalLight(stringstream& lightData, bool
 {
     glm::vec3 color = getVec3(lightData);
     glm::vec3 direction = getVec3(lightData);
-    // glm::vec3 ambient = getVec3(lightData);
-    // glm::vec3 diffuse = getVec3(lightData);
-    // glm::vec3 specular = getVec3(lightData);
 
     good = checkRangeVec3(color, 0, 1000, "ERROR:SCENE_LOADER::WRONG_COLOR");
-        // && checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY")
-        // && checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") 
-        // && checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY");
 
     DirectionalLight light(direction, color/*, ambient, diffuse, specular*/);
     return light;
@@ -133,30 +127,20 @@ PointLight SceneLoader::loadPointLight(stringstream& lightData, bool& good)
 {
     glm::vec3 position = getVec3(lightData);
     glm::vec3 color = getVec3(lightData);
-    // glm::vec3 ambient = getVec3(lightData);
-    // glm::vec3 diffuse = getVec3(lightData);
-    // glm::vec3 specular = getVec3(lightData);
 
     float constant;
     float linear;
     float quadratic;      
-    lightData >> constant;
-    lightData >> linear;
-    lightData >> quadratic;    
+    lightData >> constant >> linear >> quadratic;   
     string str;//dummy
     getline(lightData, str);
 
-    good = checkRangeVec3(position, -1000, 1000, "ERROR::SCENE_LOADER::WRONG_POSITION") &&
-        checkRangeVec3(color, 0, 1000, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
-        // checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY") &&
-        // checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") &&
-        // checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY") &&
-        checkAttenuation(constant, linear, quadratic);
+    good =  checkRangeVec3(position, -1000, 1000, "ERROR::SCENE_LOADER::WRONG_POSITION") &&
+            checkRangeVec3(color, 0, 1000, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
+            checkAttenuation(constant, linear, quadratic);
 
-    PointLight pointLight(
-                    position, color, 
-                    // ambient, diffuse, specular,
-                    constant, linear, quadratic);
+    PointLight pointLight(position, color, 
+                          constant, linear, quadratic);
     return pointLight;
 }
 
@@ -165,35 +149,27 @@ SpotLight SceneLoader::loadSpotLight(std::stringstream & lightData, bool& good)
     glm::vec3 position = getVec3(lightData);
     glm::vec3 color = getVec3(lightData);
     glm::vec3 direction = getVec3(lightData);
-    // glm::vec3 ambient = getVec3(lightData);
-    // glm::vec3 diffuse = getVec3(lightData);
-    // glm::vec3 specular = getVec3(lightData);
+
     float constant;
     float linear;
     float quadratic;
     float cutOff;
     float outerCutOff;  
     string str;//dummy
-    lightData >> constant;
-    lightData >> linear;
-    lightData >> quadratic;    
+    lightData >> constant >> linear >> quadratic;
     getline(lightData, str);
-    lightData >> cutOff;
-    lightData >> outerCutOff;
+    lightData >> cutOff >> outerCutOff;
     getline(lightData, str);
 
     good = checkRangeVec3(position, MIN_ALLOWED_POSITION, MAX_ALLOWED_POSITION, "ERROR::SCENE_LOADER::WRONG_POSITION") &&
         checkRangeVec3(color, MIN_ALLOWED_COLOR, MAX_ALLOWED_COLOR, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
-        // checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY") &&
-        // checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") &&
-        // checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY") &&
         checkAttenuation(constant, linear, quadratic) &&
         checkAngles(cutOff, outerCutOff);
 
     SpotLight spotLight(position, color, direction, 
-                        // ambient, diffuse, specular,
                         constant, linear, quadratic,
                         cutOff, outerCutOff);
+
     return spotLight;
 }
 

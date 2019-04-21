@@ -16,7 +16,6 @@ enum class TextureType {
     Albedo,
     Normal,
     Metallic,
-    // AmbientOcclusion,
     Roughness    
 };
 
@@ -46,25 +45,9 @@ public:
     // Render the mesh
     void Draw(Shader shader);
 
-    void setAmbient(glm::vec3 ambient) { _ambient = ambient; }
-
-    void setDiffuse(glm::vec3 diffuse) { _diffuse = diffuse; }
-
-    void setSpecular(glm::vec3 specular) { _specular = specular; }
-
-    void setShininess(float shininess) { _shininess = shininess; }
-
     void setOpacityRatio(float opacity) { _opacityRatio = opacity; }
 
     void setRefractionRatio(float refraction) { _refractionRatio = refraction; }
-
-    glm::vec3 getAmbient() { return _ambient; }
-
-    glm::vec3 getDiffuse() { return _diffuse; }
-
-    glm::vec3 getSpecular() { return _specular; }
-
-    float getShininess() { return _shininess; }
 
     float getOpacityRatio() { return _opacityRatio; }
 
@@ -85,13 +68,7 @@ private:
     std::vector<unsigned int> _indices;
     std::vector<Texture> _textures; 
 
-    // Material properties
-    glm::vec3 _ambient;
-    glm::vec3 _diffuse;
-    glm::vec3 _specular;
     float _opacityRatio;
     float _refractionRatio;
-    float _shininess;
 };
 #endif
-

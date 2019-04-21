@@ -132,10 +132,6 @@ int main()
     shader.setInt("pointLightsNumber", pointLightsNumber);   
     for (PointLights::size_type i = 0; i < pointLights.size(); ++i)
     {
-        // pointLights[i].setColor(pointLights[i].getColor() * glm::vec3(100));
-        shader.setVec3( "pointLights[" + to_string(i) + "].ambient", pointLights[i].getAmbient());
-        shader.setVec3( "pointLights[" + to_string(i) + "].diffuse", pointLights[i].getDiffuse());
-        shader.setVec3( "pointLights[" + to_string(i) + "].specular", pointLights[i].getSpecular());
         shader.setVec3( "pointLights[" + to_string(i) + "].position", pointLights[i].getPosition());
         shader.setVec3( "pointLights[" + to_string(i) + "].color", pointLights[i].getColor());        
         shader.setFloat("pointLights[" + to_string(i) + "].constant", pointLights[i].getConstant());
@@ -148,12 +144,8 @@ int main()
     shader.setInt("dirLightsNumber", dirLightsNumber);
     for (DirectionalLights::size_type i = 0; i < dirLights.size(); ++i)
     {
-        // dirLights[i].setColor(dirLights[i].getColor() * glm::vec3(100));
         shader.setVec3("dirLights[" + to_string(i) + "].color", dirLights[i].getColor());
         shader.setVec3("dirLights[" + to_string(i) + "].direction", dirLights[i].getDirection());
-        shader.setVec3("dirLights[" + to_string(i) + "].ambient", dirLights[i].getAmbient());
-        shader.setVec3("dirLights[" + to_string(i) + "].diffuse", dirLights[i].getDiffuse());
-        shader.setVec3("dirLights[" + to_string(i) + "].specular", dirLights[i].getSpecular());
     }
 
     // Setup spot lights
@@ -161,10 +153,6 @@ int main()
     shader.setInt("spotLightsNumber", spotLightsNumber);
     for(SpotLights::size_type i = 0; i < spotLights.size(); ++i)
     {        
-        // spotLights[i].setColor(spotLights[i].getColor() * glm::vec3(100));
-        shader.setVec3( "spotLights[" + to_string(i) + "].ambient", spotLights[i].getAmbient());
-        shader.setVec3( "spotLights[" + to_string(i) + "].diffuse", spotLights[i].getDiffuse());
-        shader.setVec3( "spotLights[" + to_string(i) + "].specular", spotLights[i].getSpecular());
         shader.setVec3( "spotLights[" + to_string(i) + "].position", spotLights[i].getPosition());
         shader.setVec3( "spotLights[" + to_string(i) + "].color", spotLights[i].getColor()); 
         shader.setVec3( "spotLights[" + to_string(i) + "].direction", spotLights[i].getDirection());       
