@@ -2,12 +2,11 @@
 
 using namespace std;
 
-SpotLight::SpotLight(
-    glm::vec3 position, glm::vec3 color, glm::vec3 direction, 
-    glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, 
-    float constant, float linear, float quadratic, 
-    float cutOff, float outerCutOff):
-    Light(color, ambient, diffuse, specular)
+SpotLight::SpotLight( glm::vec3 position, glm::vec3 color, glm::vec3 direction
+    // , glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular 
+    , float constant, float linear, float quadratic
+    , float cutOff, float outerCutOff)
+    : Light(color/*, ambient, diffuse, specular*/)
 {
     _position = position;
     _direction = direction;

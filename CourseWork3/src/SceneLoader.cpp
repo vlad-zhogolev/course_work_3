@@ -3,14 +3,16 @@
 
 using namespace std;
 
-void SceneLoader::loadScene(
-    string lightsDataPath,
-    string objectsDataPath,
-    DirectionalLights& dirLights, 
-    PointLights& pointLights, 
-    SpotLights& spotLights, 
-    Models& models, 
-    Objects& objects)
+const glm::vec3::value_type  SceneLoader::MIN_ALLOWED_POSITION       = -1000;
+const glm::vec3::value_type  SceneLoader::MAX_ALLOWED_POSITION       =  1000;
+const glm::vec3::value_type  SceneLoader::MIN_ALLOWED_COLOR          =     0;
+const glm::vec3::value_type  SceneLoader::MAX_ALLOWED_COLOR          =  1000;
+const float                  SceneLoader::MIN_ALLOWED_DEGREES_ANGLE  =     0;
+const float                  SceneLoader::MAX_ALLOWED_DEGREES_ANGLE  =    90;
+
+void SceneLoader::loadScene(string lightsDataPath, string objectsDataPath,
+    DirectionalLights& dirLights, PointLights& pointLights, SpotLights& spotLights, 
+    Models& models, Objects& objects)
 {    
     ifstream file;    
     // Read point lights info
@@ -114,16 +116,16 @@ DirectionalLight SceneLoader::loadDirectionalLight(stringstream& lightData, bool
 {
     glm::vec3 color = getVec3(lightData);
     glm::vec3 direction = getVec3(lightData);
-    glm::vec3 ambient = getVec3(lightData);
-    glm::vec3 diffuse = getVec3(lightData);
-    glm::vec3 specular = getVec3(lightData);
+    // glm::vec3 ambient = getVec3(lightData);
+    // glm::vec3 diffuse = getVec3(lightData);
+    // glm::vec3 specular = getVec3(lightData);
 
-    good = checkRangeVec3(color, 0, 1, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
-        checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY") &&
-        checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") &&
-        checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY");
+    good = checkRangeVec3(color, 0, 1000, "ERROR:SCENE_LOADER::WRONG_COLOR");
+        // && checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY")
+        // && checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") 
+        // && checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY");
 
-    DirectionalLight light(direction, color, ambient, diffuse, specular);
+    DirectionalLight light(direction, color/*, ambient, diffuse, specular*/);
     return light;
 }
 
@@ -131,9 +133,9 @@ PointLight SceneLoader::loadPointLight(stringstream& lightData, bool& good)
 {
     glm::vec3 position = getVec3(lightData);
     glm::vec3 color = getVec3(lightData);
-    glm::vec3 ambient = getVec3(lightData);
-    glm::vec3 diffuse = getVec3(lightData);
-    glm::vec3 specular = getVec3(lightData);
+    // glm::vec3 ambient = getVec3(lightData);
+    // glm::vec3 diffuse = getVec3(lightData);
+    // glm::vec3 specular = getVec3(lightData);
 
     float constant;
     float linear;
@@ -145,15 +147,15 @@ PointLight SceneLoader::loadPointLight(stringstream& lightData, bool& good)
     getline(lightData, str);
 
     good = checkRangeVec3(position, -1000, 1000, "ERROR::SCENE_LOADER::WRONG_POSITION") &&
-        checkRangeVec3(color, 0, 1, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
-        checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY") &&
-        checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") &&
-        checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY") &&
+        checkRangeVec3(color, 0, 1000, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
+        // checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY") &&
+        // checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") &&
+        // checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY") &&
         checkAttenuation(constant, linear, quadratic);
 
     PointLight pointLight(
                     position, color, 
-                    ambient, diffuse, specular,
+                    // ambient, diffuse, specular,
                     constant, linear, quadratic);
     return pointLight;
 }
@@ -163,9 +165,9 @@ SpotLight SceneLoader::loadSpotLight(std::stringstream & lightData, bool& good)
     glm::vec3 position = getVec3(lightData);
     glm::vec3 color = getVec3(lightData);
     glm::vec3 direction = getVec3(lightData);
-    glm::vec3 ambient = getVec3(lightData);
-    glm::vec3 diffuse = getVec3(lightData);
-    glm::vec3 specular = getVec3(lightData);
+    // glm::vec3 ambient = getVec3(lightData);
+    // glm::vec3 diffuse = getVec3(lightData);
+    // glm::vec3 specular = getVec3(lightData);
     float constant;
     float linear;
     float quadratic;
@@ -180,16 +182,16 @@ SpotLight SceneLoader::loadSpotLight(std::stringstream & lightData, bool& good)
     lightData >> outerCutOff;
     getline(lightData, str);
 
-    good = checkRangeVec3(position, -1000, 1000, "ERROR::SCENE_LOADER::WRONG_POSITION") &&
-        checkRangeVec3(color, 0, 1, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
-        checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY") &&
-        checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") &&
-        checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY") &&
+    good = checkRangeVec3(position, MIN_ALLOWED_POSITION, MAX_ALLOWED_POSITION, "ERROR::SCENE_LOADER::WRONG_POSITION") &&
+        checkRangeVec3(color, MIN_ALLOWED_COLOR, MAX_ALLOWED_COLOR, "ERROR:SCENE_LOADER::WRONG_COLOR") &&
+        // checkRangeVec3(ambient, 0, 1, "ERROR:SCENE_LOADER::WRONG_AMBIENT_LIGHT_PROPERTY") &&
+        // checkRangeVec3(diffuse, 0, 1, "ERROR:SCENE_LOADER::WRONG_DIFFUSE_LIGHT_PROPERTY") &&
+        // checkRangeVec3(specular, 0, 1, "ERROR:SCENE_LOADER::WRONG_SPECULAR_LIGHT_PROPERTY") &&
         checkAttenuation(constant, linear, quadratic) &&
         checkAngles(cutOff, outerCutOff);
 
     SpotLight spotLight(position, color, direction, 
-                        ambient, diffuse, specular,
+                        // ambient, diffuse, specular,
                         constant, linear, quadratic,
                         cutOff, outerCutOff);
     return spotLight;
@@ -252,8 +254,8 @@ bool SceneLoader::checkAttenuation(double constant, double linear, double quadra
 
 bool SceneLoader::checkAngles(double cutOff, double outerCutOff)
 {
-    if (cutOff > 0 && cutOff < 90 &&
-        outerCutOff > 0 && outerCutOff < 90 &&
+    if (cutOff > MIN_ALLOWED_DEGREES_ANGLE && cutOff < MAX_ALLOWED_DEGREES_ANGLE &&
+        outerCutOff > MIN_ALLOWED_DEGREES_ANGLE && outerCutOff < MAX_ALLOWED_DEGREES_ANGLE &&
         outerCutOff > cutOff)
         return true;
 

@@ -17,18 +17,20 @@
 //TODO: convert this to class Scene which holds all scene data: lights, models, objects, etc...
 class SceneLoader
 {
+    static const glm::vec3::value_type  MIN_ALLOWED_POSITION;
+    static const glm::vec3::value_type  MAX_ALLOWED_POSITION;
+    static const glm::vec3::value_type  MIN_ALLOWED_COLOR;
+    static const glm::vec3::value_type  MAX_ALLOWED_COLOR;
+    static const float                  MIN_ALLOWED_DEGREES_ANGLE;
+    static const float                  MAX_ALLOWED_DEGREES_ANGLE;
+
 public:
 
     SceneLoader() = default;
 
-    void loadScene(
-        std::string lightsDataPath, 
-        std::string modelsDataPath, 
-        DirectionalLights& dirLights, 
-        PointLights& pointLights, 
-        SpotLights& spotLights, 
-        Models& models, 
-        Objects& objects);
+    void loadScene(std::string lightsDataPath, std::string modelsDataPath
+        , DirectionalLights& dirLights, PointLights& pointLights, SpotLights& spotLights
+        , Models& models, Objects& objects);
 
 private:
 
