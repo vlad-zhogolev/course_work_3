@@ -66,11 +66,6 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS_NUMBER];
 uniform int spotLightsNumber;
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS_NUMBER];
 
-// ----------------------------------------------------------------------------
-// Easy trick to get tangent-normals to world-space to keep PBR code simplified.
-// Don't worry if you don't get what's going on; you generally want to do normal 
-// mapping the usual way for performance anways; I do plan make a note of this 
-// technique somewhere later in the normal mapping tutorial.
 vec3 getNormalFromMap()
 {
     vec3 tangentNormal = texture(texture_normal1, TexCoords).xyz * 2.0 - 1.0;
