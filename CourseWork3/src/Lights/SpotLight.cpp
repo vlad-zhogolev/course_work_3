@@ -1,4 +1,4 @@
-#include "SpotLight.h"
+#include <Lights/SpotLight.h>
 
 using namespace std;
 

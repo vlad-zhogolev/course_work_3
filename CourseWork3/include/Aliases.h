@@ -1,8 +1,8 @@
-#include "PointLight.h"
-#include "SpotLight.h"
-#include "DirectionalLight.h"
-#include "Model.h"
-#include "Object.h"
+#include <Lights/PointLight.h>
+#include <Lights/SpotLight.h>
+#include <Lights/DirectionalLight.h>
+#include <Objects/Model.h>
+#include <Objects/Object.h>
 
 #include <vector>
 #include <memory>

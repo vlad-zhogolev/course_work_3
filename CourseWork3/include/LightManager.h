@@ -2,9 +2,9 @@
 #define LIGHT_MANAGER_H
 
 #include <vector>
-#include "Aliases.h"
-#include "PointLight.h"
-#include "SpotLight.h"
+#include <Aliases.h>
+#include <Lights/PointLight.h>
+#include <Lights/SpotLight.h>s
 #include <GLFW/glfw3.h>
 
 enum class ActiveLightType 

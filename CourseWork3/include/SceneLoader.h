@@ -1,12 +1,12 @@
 #ifndef SCENE_LOADER_H
 #define SCENE_LOADER_H
 
-#include "DirectionalLight.h"
-#include "PointLight.h"
-#include "SpotLight.h"
-#include "Model.h"
-#include "Object.h"
-#include "Aliases.h"
+#include <Lights/DirectionalLight.h>
+#include <Lights/PointLight.h>
+#include <Lights/SpotLight.h>
+#include <Objects/Model.h>
+#include <Objects/Object.h>
+#include <Aliases.h>
 
 #include <iostream>
 #include <vector>

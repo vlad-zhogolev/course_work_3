@@ -3,14 +3,18 @@
 
 #include <glad/glad.h> 
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "stb_image.h"
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "Shader.h"
-#include "Mesh.h"
+
+#include <Objects/Mesh.h>
+#include <Shader.h>
+#include <stb_image.h>
+
 #include <string>
 #include <fstream>
 #include <sstream>

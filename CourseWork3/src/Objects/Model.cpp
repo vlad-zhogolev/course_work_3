@@ -1,4 +1,4 @@
-#include "Model.h"
+#include <Objects/Model.h>
 
 
 Model::Model(string const & path)

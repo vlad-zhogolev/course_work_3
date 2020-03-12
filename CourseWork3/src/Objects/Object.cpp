@@ -1,4 +1,4 @@
-#include "Object.h"
+#include <Objects/Object.h>
 
 glm::mat4 Object::getModelMatrix()
 {

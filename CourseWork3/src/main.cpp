@@ -1,22 +1,27 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+
 #include <assimp/Importer.hpp>
 #include <assimp/Scene.h>
 #include <assimp/postprocess.h>
-#include "Shader.h"
-#include "Camera.h"
-#include "SceneLoader.h"
-#include "LightManager.h"
-#include "Model.h"
-#include "Object.h"
-#include "Aliases.h"
+
+#include <Shader.h>
+#include <Camera.h>
+#include <SceneLoader.h>
+#include <LightManager.h>
+#include <Objects/Model.h>
+#include <Objects/Object.h>
+#include <Aliases.h>
+
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb_image.h>
+
 #include <iostream>
 #include <vector>
 #include <algorithm>

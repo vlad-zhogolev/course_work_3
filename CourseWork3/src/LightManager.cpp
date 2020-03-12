@@ -1,4 +1,4 @@
-#include "LightManager.h"
+#include <LightManager.h>
 
 using namespace std;
 
